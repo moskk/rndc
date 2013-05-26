@@ -25,30 +25,47 @@ class Node
     }
   end
   
+  # enqueueing new job
   def enq(job, from = nil)
     @jobs.enq job
   end
   
+  # common procedure of jobs processing
   def payload
     "payload is not implemented for #{self}"
   end
   
+  # passing the successfully processed job to customer(s)
   def pass(job)
     if(@mode)
-      @cust_list.each{|cust|cust.enq job}
+      @cust_list.each{|cust|cust.enq job if cust.ready?}
     else
       l = @cust_list.length
       return if l == 0
-      to = rand l
-      @cust_list[to].enq job
+      # we must look for ready consumer until success
+      while true do
+	to = rand l
+	if(@cust_list[to].ready?)
+	  @cust_list[to].enq job
+	  return
+	else
+	  puts "#{self}: consumer #{@cust_list[to]} is busy, looking for enother..."
+	  sleep 1
+	end
+      end
     end
+  end
+  
+  # is node ready to receive a new job
+  def ready?
+    return @jobs.length < 1
   end
 end
 
 class Source < Node
   #remove_method :do_job
   
-  def summoun
+  def spawn
     sleep 0.5
     res = $example_addr
     return res
@@ -56,7 +73,7 @@ class Source < Node
   
   def payload
     while true
-      job = summoun
+      job = spawn
       next if not job
       pass job
     end
@@ -118,7 +135,7 @@ def online?(host)
 end
 
 class HostsUpSrc < Source
-  def summoun
+  def spawn
     while true
       addr = mk_rnd_ip
       return addr if online? addr
@@ -196,11 +213,17 @@ def grab_page(ip)
     return nil
   end
   doc = Nokogiri::HTML(html)
-  text = doc.xpath("//text()").to_s
   # text = doc.at('body').inner_text
   # title = doc.at_css("title").text
   title = doc.title
-  return (shrink_text text), html, res.code.to_i, title
+  text = ''
+  begin
+    text = doc.xpath("//text()").to_s
+    text = shrink_text text
+  rescue Exception => e
+    puts "grab_page: some shit happened: #{e.message}"
+  end
+  return text, html, res.code.to_i, title
 end
 
 # IP => PageInfo
@@ -230,6 +253,7 @@ end
 class OperaOpener < Filter
   def do_job(job)
     system "opera -backgroundtab #{job.ip}"
+    puts "text len: #{job.text.length} code len: #{job.html.length}"
     return true
   end
 end
@@ -261,7 +285,7 @@ class TextDenier < Filter
     begin    
       @dlines.each do |dline|
 	if job.text.index dline
-	  puts "#{job} text contains #{dline}"
+	  puts "#{job} blamed: text contains #{dline}"
 	  return false
 	end
       end
@@ -285,7 +309,7 @@ class PageCodeTextDenier < Filter
       code = shrink_text job.html
       @dlines.each do |dline|
 	if code.index dline
-	  puts "#{job.ip} text contains #{dline}"
+	  puts "#{job.ip} blamed: page code contains #{dline}"
 	  return false
 	end
       end
@@ -338,19 +362,47 @@ class IpFileSaverFlt < Filter
   end
 end
 
+# PageInfo => *store IP in text file* => PageInfo
+class IpFileSaverFlt < Filter
+  def initialize(cust_list, file, mode = true)
+    @file = file
+    super cust_list, mode
+  end
+  
+  def do_job(job)
+    system "echo '#{job.ip}' >> #{@file}"
+    puts "wrote to file: #{job.ip}"
+    return true
+  end
+end
+
+# PageInfo => *check job for condition* => PageInfo
+class ConditionalFlt < Filter
+  def initialize(cust_list, cond, mode = true)
+    @cond = "job#{cond}"
+    super cust_list, mode
+  end
+  
+  def do_job(job)
+    val = eval @cond
+    puts "#{self}:   #{@cond} => #{val}"
+    return val
+  end
+end
 ##########################################
 #        E N T R Y   P O I N T
 ##########################################
 
-# oo = OperaOpener.new []
+oo = OperaOpener.new []
 
-fsflt = IpFileSaverFlt.new [], './result.list'
-
-
-tctd = PageCodeTextDenier.new [fsflt], './denied.words'
+# fsflt = IpFileSaverFlt.new [], './result.list'
 
 
-ptflt = PageTitleFlt.new [tctd], './denied.titles'
+tctd = PageCodeTextDenier.new [oo], './denied.words'
+
+condflt = ConditionalFlt.new [tctd], '.text.length > 0'
+
+ptflt = PageTitleFlt.new [condflt], './denied.titles'
 
 
 cflt = RespCodeFlt.new [ptflt], [200]
@@ -360,12 +412,12 @@ pg = PageGraber.new [cflt]
 printer = PrintFlt.new [], 'p80 ok: '
 
 hups_list = []
-1.upto 50 do
+1.upto 100 do
   hups_list.push PortCheckFlt.new [printer, pg], [80]
 end
 
 
-1.upto 200 do
+1.upto 100 do
   HostsUpSrc.new hups_list, false
 end
 
