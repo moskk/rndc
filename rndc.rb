@@ -27,7 +27,12 @@ class Node
   
   # enqueueing new job
   def enq(job, from = nil)
-    @jobs.enq job
+    if ready?
+      @jobs.enq job
+      return true
+    else
+      return false
+    end
   end
   
   # common procedure of jobs processing
@@ -38,18 +43,17 @@ class Node
   # passing the successfully processed job to customer(s)
   def pass(job)
     if(@mode)
-      @cust_list.each{|cust|cust.enq job if cust.ready?}
+      @cust_list.each{|cust|cust.enq job}
     else
       l = @cust_list.length
       return if l == 0
       # we must look for ready consumer until success
       while true do
 	to = rand l
-	if(@cust_list[to].ready?)
-	  @cust_list[to].enq job
+	if(@cust_list[to].enq job)
 	  return
 	else
-	  puts "#{self}: consumer #{@cust_list[to]} is busy, looking for enother..."
+	  puts "#{self}: consumer #{@cust_list[to]} is busy, looking for enother one..."
 	  sleep 1
 	end
       end
@@ -208,6 +212,7 @@ def grab_page(ip)
   begin
     uri = URI("http://#{ip}/")
     res = Net::HTTP.get_response(uri)
+    #return nil if not res.response_body_permitted?
     html = res.body
   rescue
     return nil
@@ -245,6 +250,10 @@ end
 class PageGraber < Transformer
   def do_job(job)
     text, html, code, title = grab_page job
+    return nil if text.nil?
+    puts ">>>>>>> grabbed page from >#{job}<, title >#{title}<, resp_code #{code}"
+    puts "#{text}\n\n\n"
+    puts "#{html}\n\n\n"
     return PageInfo.new job, code, html, text, title
   end
 end
@@ -389,38 +398,4 @@ class ConditionalFlt < Filter
     return val
   end
 end
-##########################################
-#        E N T R Y   P O I N T
-##########################################
 
-oo = OperaOpener.new []
-
-# fsflt = IpFileSaverFlt.new [], './result.list'
-
-
-tctd = PageCodeTextDenier.new [oo], './denied.words'
-
-condflt = ConditionalFlt.new [tctd], '.text.length > 0'
-
-ptflt = PageTitleFlt.new [condflt], './denied.titles'
-
-
-cflt = RespCodeFlt.new [ptflt], [200]
-
-
-pg = PageGraber.new [cflt]
-printer = PrintFlt.new [], 'p80 ok: '
-
-hups_list = []
-1.upto 100 do
-  hups_list.push PortCheckFlt.new [printer, pg], [80]
-end
-
-
-1.upto 100 do
-  HostsUpSrc.new hups_list, false
-end
-
-puts '-------------S T A R T E D----------------'
-
-gets 
