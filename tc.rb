@@ -9,7 +9,7 @@ oo = OperaOpener.new []
 
 # fsflt = IpFileSaverFlt.new [], './result.list'
 
-tctd = PageCodeTextDenier.new [oo], './denied.words'
+tctd = PageCodeTextFilter.new [oo], './denied.words'
 
 condflt = ConditionalFlt.new [tctd], '.text.length > 0'
 

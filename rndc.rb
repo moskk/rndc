@@ -5,6 +5,8 @@ $example_addr = '66.71.253.245'
 
 require 'thread'
 class Node
+  #attr_accessor :name
+  @@name = 'none'
   @jobs = nil
   @cust_list = []
   # mode: true - result sent to all customers, false - result sent to any customer
@@ -150,6 +152,7 @@ class HostsUpSrc < Source
 end
 
 class PrintFlt < Filter
+  @@name = 'print'
   def initialize(cust_list, text = '', mode = true)
     @msg = text
     super cust_list, mode
@@ -179,6 +182,7 @@ def port_open?(host,port)
 end
 
 class PortCheckFlt < Filter
+  @@name = 'oport'
   @port_list = []
   def initialize(cust_list, port_list, mode = true)
     @port_list = port_list
@@ -248,18 +252,20 @@ class PageInfo
 end
 
 class PageGraber < Transformer
+  @@name = 'getpage'
   def do_job(job)
     text, html, code, title = grab_page job
     return nil if text.nil?
-    puts ">>>>>>> grabbed page from >#{job}<, title >#{title}<, resp_code #{code}"
-    puts "#{text}\n\n\n"
-    puts "#{html}\n\n\n"
+    #puts ">>>>>>> grabbed page from >#{job}<, title >#{title}<, resp_code #{code}"
+    #puts "#{text}\n\n\n"
+    #puts "#{html}\n\n\n"
     return PageInfo.new job, code, html, text, title
   end
 end
 
 # IP => *opne in opera* => IP
 class OperaOpener < Filter
+  @@name = 'oopera'
   def do_job(job)
     system "opera -backgroundtab #{job.ip}"
     puts "text len: #{job.text.length} code len: #{job.html.length}"
@@ -271,7 +277,7 @@ def file_lines(path)
   file = File.new(path, "rt")
   res = []
   while line = file.gets
-    line.chop!
+    line.chomp!
     if line.empty?
       next
     end
@@ -283,7 +289,8 @@ def file_lines(path)
 end
 
 # PageInfo => *page text filtering* => PageInfo
-class TextDenier < Filter
+class TextFilter < Filter
+  @@name = 'textf'
   def initialize(cust_list, denied_lines_file, mode = true)
     @dlines = file_lines denied_lines_file
     super cust_list, mode
@@ -305,7 +312,8 @@ class TextDenier < Filter
 end
 
 # PageInfo => *page code text filtering* => PageInfo
-class PageCodeTextDenier < Filter
+class PageCodeTextFilter < Filter
+  @@name = 'codef'
   def initialize(cust_list, denied_lines_file, mode = true)
     @dlines = file_lines denied_lines_file
     super cust_list, mode
@@ -330,6 +338,7 @@ end
 
 # PageInfo => *allowed HTTP response code* => PageInfo
 class RespCodeFlt < Filter
+  @@name = 'respcf'
   def initialize(cust_list, allowed_codes, mode = true)
     @codes = allowed_codes
     super cust_list, mode
@@ -342,6 +351,7 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class PageTitleFlt < Filter
+  @@name = 'titlef'
   def initialize(cust_list, denied_titles_file, mode = true)
     @titles = file_lines denied_titles_file
     super cust_list, mode
@@ -359,20 +369,7 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class IpFileSaverFlt < Filter
-  def initialize(cust_list, file, mode = true)
-    @file = file
-    super cust_list, mode
-  end
-  
-  def do_job(job)
-    system "echo '#{job.ip}' >> #{@file}"
-    puts "wrote to file: #{job.ip}"
-    return true
-  end
-end
-
-# PageInfo => *store IP in text file* => PageInfo
-class IpFileSaverFlt < Filter
+  @@name = 'saveip'
   def initialize(cust_list, file, mode = true)
     @file = file
     super cust_list, mode
@@ -387,6 +384,7 @@ end
 
 # PageInfo => *check job for condition* => PageInfo
 class ConditionalFlt < Filter
+  @@name = 'condf'
   def initialize(cust_list, cond, mode = true)
     @cond = "job#{cond}"
     super cust_list, mode
