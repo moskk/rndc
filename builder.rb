@@ -36,6 +36,7 @@ def pass_dict()
 end
 
 class NodeDescription
+  @source = ''             # source script line
   @tag = ''                # reference name for this node
   @nodetype = ''           # performed operation
   @inverted = false        # would filter decision be inverted
@@ -46,6 +47,7 @@ class NodeDescription
   @valid = false
   @error = ''
 
+  attr_accessor :source
   attr_accessor :tag
   attr_accessor :nodetype
   attr_accessor :inverted
@@ -57,13 +59,21 @@ class NodeDescription
   attr_accessor :error
 
   def parse(descr)
+    @source = descr
+
     # string preparation
     descr.chomp!
     descr.gsub! ' ',''
     descr.gsub! "\t",''
-    puts descr
+    puts ">> #{descr}"
 
-    # tag
+    if descr[0] == '#'
+      @nodetype = nil
+      @valid = true
+      return true
+    end
+
+   # tag
     ilpar = descr.index '('
     ilpar ||= 0
     @tag = descr[0, ilpar]
@@ -92,6 +102,12 @@ class NodeDescription
     rclist ||= ''
     @receivers = rclist.split ','
     @receivers.delete ''
+    @receivers.each do |rec|
+      if rec =~ /\W/
+        @error = "invalid tag name #{rec}. allowed symbols: a-zA-Z0-9_"
+        return false
+      end
+    end
     puts "receivers #{receivers}"
 
 =begin
@@ -105,10 +121,41 @@ class NodeDescription
     @inverted = (oper[-1] == '-')
     puts "inverted #{inverted}"
 =end
-
+    while not ( oper.nil? or oper.empty?)
+      case oper[0]
+      when /\w/
+        @nodetype = oper.slice!(/\w*/)
+        puts "nodetype #{nodetype} => #{oper}"
+      when '|'
+        t = oper.slice!(/\|.*\|/)
+        @param = between t,'|','|'
+        puts "param #{param} => #{oper}"
+      when '['
+        t = oper.slice!(/\[.*\]/)
+        t = between(t,'[',']')
+        if not t =~ /\d+/
+          @error = "count must be an integer, but '#{t}' is not looking such"
+          return false
+        end
+        @count = t.to_i
+        puts "count #{count} => #{oper}"
+      when '+'
+        oper.slice!(/./)
+        @inverted = false
+        puts "inverted #{inverted} => #{oper}"
+      when '-'
+        oper.slice!(/./)
+        @inverted = true
+        puts "inverted #{inverted} => #{oper}"
+      else
+        @error = "unexpected symbol in operation definition: #{oper[0]}"
+        return false
+      end
+    end
     @valid = true
     @error = 'no error'
     puts error
+    puts
     return true
   end
 
@@ -121,22 +168,124 @@ class TCBuilder
   @@n = [HostsUpSrc, PrintFlt, PortCheckFlt, TextFilter, PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, ConditionalFlt, PageGraber]
 
   @nodemap = {}
+  @nodes_descr = {}
+  @nodes = {}
+  @valid = false
+  @log = []
 
-  def initialize()
+  attr_accessor :valid
+  attr_accessor :errors
+
+  def initialize(script_file)
     @@n.each do |node| @nodemap[node.name] = node end
+
+    @log << "loading script file \"#{script_file}\"..."
+    if load_script script_file
+      @log << "script \"#{script_file}\" loaded"
+    else
+      @log << "script \"#{script_file}\" NOT loaded due some errors"
+      return false
+    end
+
+    if exec_script
+      @log << "script \"#{script_file}\" started"
+    else
+      @log << "script \"#{script_file}\" NOT started due some errors"
+      return false
+    end
   end
 
-  def exec(cmdlist)
-    
+  def load_script(script_file)
+    # parsing script
+    script = file_lines script_file
+    fail = false
+    puts script
+    def_tag = ':aaaa'
+    script.each do |line|
+      node = NodeDescription.new line
+      if not node.valid
+        err = "syntax error in line \"#{line}\": #{node.error}"
+        errors << err
+        fail = true
+        next
+      end
+
+      if not node.nodetype.nil?
+        if node.tag.empty? or node.tag.nil?
+          node.tag = def_tag.succ!
+        end
+        if @nodes_descr.include? node.tag
+          err = "node named \"#{node.tag}\" allredy defined before\n\t redefinition in line \"#{node.source}\""
+          fail = true
+          next
+        end
+        @nodes_descr[node.tag] = node
+      end
+    end
+
+    return false if fail
+
+    # checking for valid node action names and tags
+    @nodes_descr.each_value do |node|
+      if not @nodemap.include? node.nodetype
+        err = "undefined action type \"#{node.nodetype}\" referenced\nin line \"#{node.source}\""
+        @errors << err
+        fail = true
+      end
+
+      node.receivers.each do |totag|
+        if not @nodes.include? totag
+          err = "no nodes tagged as \"#{totag}\" found in script,\n\tbut it is referenced in line: \"#{node.source}\""
+          @errors << err
+          fail = true
+        end
+      end
+    end
+
+    return false if fail
+
+    return true
+  end
+
+  def exec_script()
+    # creating node actors
+    @nodes_descr.each_pair do |tag, node|
+      param = eval node.param
+      @nodes[tag] = @nodemap[node.nodetype].new [], param, (node.passtype == :toall)
+    end
+
+    # adding node receivers
+
+    # starting nodes
+
   end
 end
 
 
 
 
-node = NodeDescription.new 'prt(print[4]{45}-)?dsf'
+
+=begin
+node = NodeDescription.new 'prt(print[5]|45|-------++-+)?dsf'
 if not node.valid
   puts node.error
 end
+=end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
