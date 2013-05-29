@@ -6,7 +6,7 @@ $example_addr = '66.71.253.245'
 require 'thread'
 class Node
   #attr_accessor :name
-  @@name = 'none'
+  @opname = 'none'
   @jobs = nil
   @cust_list = []
   # mode: true - result sent to all customers, false - result sent to any customer
@@ -16,15 +16,6 @@ class Node
     @jobs = Queue.new
     @cust_list = cust_list
     @mode = mode
-    @thread = Thread.new{
-      #sleep 5
-      begin
-        payload
-      rescue => e
-	puts "payload: some shit happened in #{self}: #{e.message}\n"
-	e.backtrace.each{|line| puts "\t#{line}"}
-      end
-    }
   end
   
   # enqueueing new job
@@ -65,6 +56,31 @@ class Node
   # is node ready to receive a new job
   def ready?
     return @jobs.length < 1
+  end
+
+  def add_rcv(rlist)
+    @cust_list + rlist
+  end
+
+  def start()
+    @thread = Thread.new{
+      #sleep 5
+      begin
+        payload
+      rescue => e
+	puts "payload: some shit happened in #{self}: #{e.message}\n"
+	e.backtrace.each{|line| puts "\t#{line}"}
+      end
+    }    
+  end
+
+  def stop()
+    @thread.stop
+    @thread.kill
+  end
+
+  def opname()
+    @opname
   end
 end
 
@@ -141,6 +157,7 @@ def online?(host)
 end
 
 class HostsUpSrc < Source
+  @opname = 'rndup'
   def spawn
     while true
       addr = mk_rnd_ip
@@ -152,7 +169,7 @@ class HostsUpSrc < Source
 end
 
 class PrintFlt < Filter
-  @@name = 'print'
+  @opname = 'print'
   def initialize(cust_list, text = '', mode = true)
     @msg = text
     super cust_list, mode
@@ -182,7 +199,7 @@ def port_open?(host,port)
 end
 
 class PortCheckFlt < Filter
-  @@name = 'oport'
+  @opname = 'oport'
   @port_list = []
   def initialize(cust_list, port_list, mode = true)
     @port_list = port_list
@@ -252,7 +269,7 @@ class PageInfo
 end
 
 class PageGraber < Transformer
-  @@name = 'getpage'
+  @opname = 'getpage'
   def do_job(job)
     text, html, code, title = grab_page job
     return nil if text.nil?
@@ -265,7 +282,7 @@ end
 
 # IP => *opne in opera* => IP
 class OperaOpener < Filter
-  @@name = 'oopera'
+  @opname = 'oopera'
   def do_job(job)
     system "opera -backgroundtab #{job.ip}"
     puts "text len: #{job.text.length} code len: #{job.html.length}"
@@ -290,7 +307,7 @@ end
 
 # PageInfo => *page text filtering* => PageInfo
 class TextFilter < Filter
-  @@name = 'textf'
+  @opname = 'textf'
   def initialize(cust_list, denied_lines_file, mode = true)
     @dlines = file_lines denied_lines_file
     super cust_list, mode
@@ -313,7 +330,7 @@ end
 
 # PageInfo => *page code text filtering* => PageInfo
 class PageCodeTextFilter < Filter
-  @@name = 'codef'
+  @@opname = 'codef'
   def initialize(cust_list, denied_lines_file, mode = true)
     @dlines = file_lines denied_lines_file
     super cust_list, mode
@@ -338,7 +355,7 @@ end
 
 # PageInfo => *allowed HTTP response code* => PageInfo
 class RespCodeFlt < Filter
-  @@name = 'respcf'
+  @opname = 'respcf'
   def initialize(cust_list, allowed_codes, mode = true)
     @codes = allowed_codes
     super cust_list, mode
@@ -351,7 +368,7 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class PageTitleFlt < Filter
-  @@name = 'titlef'
+  @opname = 'titlef'
   def initialize(cust_list, denied_titles_file, mode = true)
     @titles = file_lines denied_titles_file
     super cust_list, mode
@@ -369,7 +386,7 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class IpFileSaverFlt < Filter
-  @@name = 'saveip'
+  @opname = 'saveip'
   def initialize(cust_list, file, mode = true)
     @file = file
     super cust_list, mode
@@ -384,7 +401,7 @@ end
 
 # PageInfo => *check job for condition* => PageInfo
 class ConditionalFlt < Filter
-  @@name = 'condf'
+  @opname = 'condf'
   def initialize(cust_list, cond, mode = true)
     @cond = "job#{cond}"
     super cust_list, mode

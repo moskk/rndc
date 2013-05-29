@@ -1,22 +1,5 @@
 require './rndc.rb'
 
-# node container for tool chain builder
-class NodePool
-  @nodes = []
-
-  def add(nodelist)
-    nodelist.each do |node| @nodes << node end
-  end
-
-  def start()
-    @nodes.each do |node| node.start end
-  end
-
-  def stop()
-    @nodes.each do |node| node.stop end
-  end
-end
-
 def between(str, l, r)
   il = str.index l
   return nil if il.nil?
@@ -59,7 +42,7 @@ class NodeDescription
   attr_accessor :error
 
   def parse(descr)
-    @source = descr
+    @source = descr.clone
 
     # string preparation
     descr.chomp!
@@ -164,6 +147,7 @@ class NodeDescription
   end
 end
 
+# tool chain builder
 class TCBuilder
   @@n = [HostsUpSrc, PrintFlt, PortCheckFlt, TextFilter, PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, ConditionalFlt, PageGraber]
 
@@ -174,10 +158,20 @@ class TCBuilder
   @log = []
 
   attr_accessor :valid
-  attr_accessor :errors
+  attr_accessor :log
 
   def initialize(script_file)
-    @@n.each do |node| @nodemap[node.name] = node end
+    @nodemap = {}
+    @nodes_descr = {}
+    @nodes = {}
+    @valid = false
+    @log = []
+
+    @log << 'TCBuilder alloved actions:'
+    @@n.each do |node|
+      @nodemap[node.opname] = node
+      @log << "\t- #{node.opname}"
+    end
 
     @log << "loading script file \"#{script_file}\"..."
     if load_script script_file
@@ -193,6 +187,8 @@ class TCBuilder
       @log << "script \"#{script_file}\" NOT started due some errors"
       return false
     end
+
+    return true
   end
 
   def load_script(script_file)
@@ -205,7 +201,7 @@ class TCBuilder
       node = NodeDescription.new line
       if not node.valid
         err = "syntax error in line \"#{line}\": #{node.error}"
-        errors << err
+        @log << err
         fail = true
         next
       end
@@ -215,7 +211,8 @@ class TCBuilder
           node.tag = def_tag.succ!
         end
         if @nodes_descr.include? node.tag
-          err = "node named \"#{node.tag}\" allredy defined before\n\t redefinition in line \"#{node.source}\""
+          err = "node named \"#{node.tag}\" allredy defined before. redefinition in line \"#{node.source}\""
+          @log << err
           fail = true
           next
         end
@@ -228,15 +225,15 @@ class TCBuilder
     # checking for valid node action names and tags
     @nodes_descr.each_value do |node|
       if not @nodemap.include? node.nodetype
-        err = "undefined action type \"#{node.nodetype}\" referenced\nin line \"#{node.source}\""
-        @errors << err
+        err = "undefined action type \"#{node.nodetype}\" referenced in line \"#{node.source}\""
+        @log << err
         fail = true
       end
 
       node.receivers.each do |totag|
-        if not @nodes.include? totag
-          err = "no nodes tagged as \"#{totag}\" found in script,\n\tbut it is referenced in line: \"#{node.source}\""
-          @errors << err
+        if not @nodes_descr.include? totag
+          err = "no nodes tagged as \"#{totag}\" found in script, but one is referenced in line: \"#{node.source}\""
+          @log << err
           fail = true
         end
       end
@@ -247,17 +244,41 @@ class TCBuilder
     return true
   end
 
-  def exec_script()
+  def start_script()
     # creating node actors
     @nodes_descr.each_pair do |tag, node|
       param = eval node.param
-      @nodes[tag] = @nodemap[node.nodetype].new [], param, (node.passtype == :toall)
+      @nodes[tag] = []
+      1.upto node.count do
+        @nodes[tag] << @nodemap[node.nodetype].new([], param, (node.passtype == :toall))
+      end
     end
 
     # adding node receivers
-
+    @nodes_descr.each_pair do |tag, node_descr|
+      node_descr.receivers.each do |receiver|
+        @nodes[tag].each do |node|
+          node.add_rcv @nodes[receiver]
+        end
+      end
+    end
+    
     # starting nodes
+    @nodes.each_value do |nodelist|
+      nodelist.each do node
+        node.start
+      end
+    end
 
+    return true
+  end
+
+  def stop_script()
+    @nodes.each_value do |nodelist|
+      nodelist.each do node
+        node.stop
+      end
+    end
   end
 end
 
@@ -272,7 +293,8 @@ if not node.valid
 end
 =end
 
-
+tcb = TCBuilder.new './discover.script'
+puts tcb.log
 
 
 
