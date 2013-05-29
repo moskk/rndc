@@ -19,17 +19,6 @@ def pass_dict()
 end
 
 class NodeDescription
-  @source = ''             # source script line
-  @tag = ''                # reference name for this node
-  @nodetype = ''           # performed operation
-  @inverted = false        # would filter decision be inverted
-  @param = ''              # node operation parameter (if is)
-  @count = 1               # count of actors in node
-  @passtype = :nopas       # how to pass operation result (to all, to any, not pass)
-  @receivers = []          # list of nodes that receive operation result
-  @valid = false
-  @error = ''
-
   attr_accessor :source
   attr_accessor :tag
   attr_accessor :nodetype
@@ -48,7 +37,7 @@ class NodeDescription
     descr.chomp!
     descr.gsub! ' ',''
     descr.gsub! "\t",''
-    puts ">> #{descr}"
+    #puts ">> #{descr}"
 
     if descr[0] == '#'
       @nodetype = nil
@@ -60,12 +49,12 @@ class NodeDescription
     ilpar = descr.index '('
     ilpar ||= 0
     @tag = descr[0, ilpar]
-    puts "tag #{tag}"
+    #puts "tag #{tag}"
 
     # operation
     irpar = descr.index ')'
     oper = between descr,'(',')'
-    puts "oper #{oper}        #{ilpar} #{irpar}"
+    #puts "oper #{oper}        #{ilpar} #{irpar}"
     if oper.nil?
       @error = "no operation performed: #{oper}"
       return false
@@ -78,7 +67,7 @@ class NodeDescription
       @error = "unrecognized passing type #{pass}"
       return false
     end
-    puts "pass #{passtype}"
+    #puts "pass #{passtype}"
 
     #receivers
     rclist = descr[irpar+2..-1]
@@ -91,7 +80,7 @@ class NodeDescription
         return false
       end
     end
-    puts "receivers #{receivers}"
+    #puts "receivers #{receivers}"
 
 =begin
     # parsing operation
@@ -108,11 +97,11 @@ class NodeDescription
       case oper[0]
       when /\w/
         @nodetype = oper.slice!(/\w*/)
-        puts "nodetype #{nodetype} => #{oper}"
+        #puts "nodetype #{nodetype} => #{oper}"
       when '|'
         t = oper.slice!(/\|.*\|/)
         @param = between t,'|','|'
-        puts "param #{param} => #{oper}"
+        #print "param ", param, " => ", oper, "\n"
       when '['
         t = oper.slice!(/\[.*\]/)
         t = between(t,'[',']')
@@ -121,15 +110,15 @@ class NodeDescription
           return false
         end
         @count = t.to_i
-        puts "count #{count} => #{oper}"
+        #puts "count #{count} => #{oper}"
       when '+'
         oper.slice!(/./)
         @inverted = false
-        puts "inverted #{inverted} => #{oper}"
+        #puts "inverted #{inverted} => #{oper}"
       when '-'
         oper.slice!(/./)
         @inverted = true
-        puts "inverted #{inverted} => #{oper}"
+        #puts "inverted #{inverted} => #{oper}"
       else
         @error = "unexpected symbol in operation definition: #{oper[0]}"
         return false
@@ -137,19 +126,28 @@ class NodeDescription
     end
     @valid = true
     @error = 'no error'
-    puts error
-    puts
     return true
   end
 
   def initialize(descr)
+    @source = ''             # source script line
+    @tag = ''                # reference name for this node
+    @nodetype = ''           # performed operation
+    @inverted = false        # would filter decision be inverted
+    @param = ''              # node operation parameter (if is)
+    @count = 1               # count of actors in node
+    @passtype = :nopas       # how to pass operation result (to all, to any, not pass)
+    @receivers = []          # list of nodes that receive operation result
+    @valid = false
+    @error = ''
+
     parse(descr)
   end
 end
 
 # tool chain builder
 class TCBuilder
-  @@n = [HostsUpSrc, PrintFlt, PortCheckFlt, TextFilter, PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, ConditionalFlt, PageGraber]
+  @@n = [HostsUpSrc, PrintFlt, PortCheckFlt, TextFilter, PageCodeTextFilter, OperaOpener, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, ConditionalFlt, PageGraber]
 
   @nodemap = {}
   @nodes_descr = {}
@@ -181,7 +179,7 @@ class TCBuilder
       return false
     end
 
-    if exec_script
+    if start_script
       @log << "script \"#{script_file}\" started"
     else
       @log << "script \"#{script_file}\" NOT started due some errors"
@@ -195,7 +193,7 @@ class TCBuilder
     # parsing script
     script = file_lines script_file
     fail = false
-    puts script
+    #puts script
     def_tag = ':aaaa'
     script.each do |line|
       node = NodeDescription.new line
@@ -240,13 +238,13 @@ class TCBuilder
     end
 
     return false if fail
-
     return true
   end
 
   def start_script()
     # creating node actors
     @nodes_descr.each_pair do |tag, node|
+      puts node.inspect
       param = eval node.param
       @nodes[tag] = []
       1.upto node.count do
@@ -293,8 +291,12 @@ if not node.valid
 end
 =end
 
-tcb = TCBuilder.new './discover.script'
-puts tcb.log
+#tcb = TCBuilder.new './discover.script'
+#puts tcb.log
+
+puts between "--|4234|--", '|', '|'
+
+
 
 
 
