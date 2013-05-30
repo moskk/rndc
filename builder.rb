@@ -147,7 +147,11 @@ end
 
 # tool chain builder
 class TCBuilder
+<<<<<<< HEAD
   @@n = [HostsUpSrc, PrintFlt, PortCheckFlt, TextFilter, PageCodeTextFilter, OperaOpener, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, ConditionalFlt, PageGraber]
+=======
+  @@n = [HostsUpSrc, PrintFlt, OperaOpener, PortCheckFlt, TextFilter, PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, ConditionalFlt, PageGraber]
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
 
   @nodemap = {}
   @nodes_descr = {}
@@ -246,7 +250,7 @@ class TCBuilder
     @nodes_descr.each_pair do |tag, node|
       puts node.inspect
       param = eval node.param
-      @nodes[tag] = []
+      @nodes[tag] ||= []
       1.upto node.count do
         @nodes[tag] << @nodemap[node.nodetype].new([], param, (node.passtype == :toall))
       end
@@ -263,7 +267,7 @@ class TCBuilder
     
     # starting nodes
     @nodes.each_value do |nodelist|
-      nodelist.each do node
+      nodelist.each do |node|
         node.start
       end
     end
@@ -294,12 +298,16 @@ end
 tcb = TCBuilder.new './discover.script'
 puts tcb.log
 
+<<<<<<< HEAD
 #puts between "|4234|", '|', '|'
 
 
 
 
 
+=======
+gets
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
 
 
 

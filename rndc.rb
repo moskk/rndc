@@ -159,12 +159,17 @@ class HostsUpSrc < Source
   def spawn
     while true
       addr = mk_rnd_ip
+      #puts "addr #{addr}"
       return addr if online? addr
     end
 #     sleep 1
 #     $example_addr
   end
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'rndup'
   end
@@ -180,7 +185,11 @@ class PrintFlt < Filter
     puts "#{@msg}#{job}"
     return true
   end
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'print'
   end
@@ -220,7 +229,11 @@ class PortCheckFlt < Filter
     end
     return true
   end
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'oport'
   end
@@ -285,7 +298,11 @@ class PageGraber < Transformer
     #puts "#{html}\n\n\n"
     return PageInfo.new job, code, html, text, title
   end
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'getpage'
   end
@@ -298,7 +315,11 @@ class OperaOpener < Filter
     puts "text len: #{job.text.length} code len: #{job.html.length}"
     return true
   end
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'oopera'
   end
@@ -321,7 +342,11 @@ end
 
 # PageInfo => *page text filtering* => PageInfo
 class TextFilter < Filter
+<<<<<<< HEAD
   def initialize(cust_list, mode, denied_lines_file)
+=======
+  def initialize(cust_list, denied_lines_file, mode = true)
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
     @dlines = file_lines denied_lines_file
     super cust_list, mode
   end
@@ -339,7 +364,11 @@ class TextFilter < Filter
     end
     return true
   end
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'textf'
   end
@@ -347,7 +376,11 @@ end
 
 # PageInfo => *page code text filtering* => PageInfo
 class PageCodeTextFilter < Filter
+<<<<<<< HEAD
   def initialize(cust_list, mode, denied_lines_file)
+=======
+  def initialize(cust_list, denied_lines_file, mode = true)
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
     @dlines = file_lines denied_lines_file
     super cust_list, mode
   end
@@ -367,7 +400,11 @@ class PageCodeTextFilter < Filter
     end
     return true
   end
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'codef'
   end
@@ -375,7 +412,11 @@ end
 
 # PageInfo => *allowed HTTP response code* => PageInfo
 class RespCodeFlt < Filter
+<<<<<<< HEAD
   def initialize(cust_list, mode, allowed_codes)
+=======
+  def initialize(cust_list, allowed_codes, mode = true)
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
     @codes = allowed_codes
     super cust_list, mode
   end
@@ -383,7 +424,11 @@ class RespCodeFlt < Filter
   def do_job(job)
     return @codes.include? job.resp_code
   end
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'respcf'
   end
@@ -391,7 +436,11 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class PageTitleFlt < Filter
+<<<<<<< HEAD
   def initialize(cust_list, mode, denied_titles_file)
+=======
+  def initialize(cust_list, denied_titles_file, mode = true)
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
     @titles = file_lines denied_titles_file
     super cust_list, mode
   end
@@ -404,7 +453,11 @@ class PageTitleFlt < Filter
     end
     return true
   end
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'titlef'
   end
@@ -412,7 +465,11 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class IpFileSaverFlt < Filter
+<<<<<<< HEAD
   def initialize(cust_list, mode, file)
+=======
+  def initialize(cust_list, file, mode = true)
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
     @file = file
     super cust_list, mode
   end
@@ -422,7 +479,11 @@ class IpFileSaverFlt < Filter
     puts "wrote to file: #{job.ip}"
     return true
   end
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'saveip'
   end
@@ -430,7 +491,11 @@ end
 
 # PageInfo => *check job for condition* => PageInfo
 class ConditionalFlt < Filter
+<<<<<<< HEAD
   def initialize(cust_list, mode, cond)
+=======
+  def initialize(cust_list, cond, mode = true)
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
     @cond = "job#{cond}"
     super cust_list, mode
   end
@@ -440,7 +505,11 @@ class ConditionalFlt < Filter
     puts "#{self}:   #{@cond} => #{val}"
     return val
   end
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'condf'
   end
