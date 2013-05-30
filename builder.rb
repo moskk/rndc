@@ -3,7 +3,7 @@ require './rndc.rb'
 def between(str, l, r)
   il = str.index l
   return nil if il.nil?
-  ir = str.index r, il
+  ir = str.index r, il+1
   return nil if ir.nil?
   return str[il+1..ir-1]
 end
@@ -19,17 +19,6 @@ def pass_dict()
 end
 
 class NodeDescription
-  @source = ''             # source script line
-  @tag = ''                # reference name for this node
-  @nodetype = ''           # performed operation
-  @inverted = false        # would filter decision be inverted
-  @param = ''              # node operation parameter (if is)
-  @count = 1               # count of actors in node
-  @passtype = :nopas       # how to pass operation result (to all, to any, not pass)
-  @receivers = []          # list of nodes that receive operation result
-  @valid = false
-  @error = ''
-
   attr_accessor :source
   attr_accessor :tag
   attr_accessor :nodetype
@@ -143,13 +132,24 @@ class NodeDescription
   end
 
   def initialize(descr)
+    @source = ''             # source script line
+    @tag = ''                # reference name for this node
+    @nodetype = ''           # performed operation
+    @inverted = false        # would filter decision be inverted
+    @param = ''              # node operation parameter (if is)
+    @count = 1               # count of actors in node
+    @passtype = :nopas       # how to pass operation result (to all, to any, not pass)
+    @receivers = []          # list of nodes that receive operation result
+    @valid = false
+    @error = ''
+
     parse(descr)
   end
 end
 
 # tool chain builder
 class TCBuilder
-  @@n = [HostsUpSrc, PrintFlt, PortCheckFlt, TextFilter, PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, ConditionalFlt, PageGraber]
+  @@n = [HostsUpSrc, PrintFlt, OperaOpener, PortCheckFlt, TextFilter, PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, ConditionalFlt, PageGraber]
 
   @nodemap = {}
   @nodes_descr = {}
@@ -181,7 +181,7 @@ class TCBuilder
       return false
     end
 
-    if exec_script
+    if start_script
       @log << "script \"#{script_file}\" started"
     else
       @log << "script \"#{script_file}\" NOT started due some errors"
@@ -248,7 +248,7 @@ class TCBuilder
     # creating node actors
     @nodes_descr.each_pair do |tag, node|
       param = eval node.param
-      @nodes[tag] = []
+      @nodes[tag] ||= []
       1.upto node.count do
         @nodes[tag] << @nodemap[node.nodetype].new([], param, (node.passtype == :toall))
       end
@@ -265,7 +265,7 @@ class TCBuilder
     
     # starting nodes
     @nodes.each_value do |nodelist|
-      nodelist.each do node
+      nodelist.each do |node|
         node.start
       end
     end
@@ -296,7 +296,7 @@ end
 tcb = TCBuilder.new './discover.script'
 puts tcb.log
 
-
+gets
 
 
 

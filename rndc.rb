@@ -12,7 +12,7 @@ class Node
   # mode: true - result sent to all customers, false - result sent to any customer
   @mode = true
   @thread = nil
-  def initialize(cust_list, mode = true)
+  def initialize(cust_list, mode, param = nil)
     @jobs = Queue.new
     @cust_list = cust_list
     @mode = mode
@@ -157,19 +157,22 @@ def online?(host)
 end
 
 class HostsUpSrc < Source
-  @opname = 'rndup'
   def spawn
     while true
       addr = mk_rnd_ip
+      #puts "addr #{addr}"
       return addr if online? addr
     end
 #     sleep 1
 #     $example_addr
   end
+  
+  def self.opname()
+    'rndup'
+  end
 end
 
 class PrintFlt < Filter
-  @opname = 'print'
   def initialize(cust_list, text = '', mode = true)
     @msg = text
     super cust_list, mode
@@ -178,6 +181,10 @@ class PrintFlt < Filter
   def do_job(job)
     puts "#{@msg}#{job}"
     return true
+  end
+  
+  def self.opname()
+    'print'
   end
 end
 
@@ -199,7 +206,6 @@ def port_open?(host,port)
 end
 
 class PortCheckFlt < Filter
-  @opname = 'oport'
   @port_list = []
   def initialize(cust_list, port_list, mode = true)
     @port_list = port_list
@@ -215,6 +221,10 @@ class PortCheckFlt < Filter
       next
     end
     return true
+  end
+  
+  def self.opname()
+    'oport'
   end
 end
 
@@ -269,7 +279,6 @@ class PageInfo
 end
 
 class PageGraber < Transformer
-  @opname = 'getpage'
   def do_job(job)
     text, html, code, title = grab_page job
     return nil if text.nil?
@@ -278,15 +287,22 @@ class PageGraber < Transformer
     #puts "#{html}\n\n\n"
     return PageInfo.new job, code, html, text, title
   end
+  
+  def self.opname()
+    'getpage'
+  end
 end
 
 # IP => *opne in opera* => IP
 class OperaOpener < Filter
-  @opname = 'oopera'
   def do_job(job)
     system "opera -backgroundtab #{job.ip}"
     puts "text len: #{job.text.length} code len: #{job.html.length}"
     return true
+  end
+  
+  def self.opname()
+    'oopera'
   end
 end
 
@@ -307,7 +323,6 @@ end
 
 # PageInfo => *page text filtering* => PageInfo
 class TextFilter < Filter
-  @opname = 'textf'
   def initialize(cust_list, denied_lines_file, mode = true)
     @dlines = file_lines denied_lines_file
     super cust_list, mode
@@ -326,11 +341,14 @@ class TextFilter < Filter
     end
     return true
   end
+  
+  def self.opname()
+    'textf'
+  end
 end
 
 # PageInfo => *page code text filtering* => PageInfo
 class PageCodeTextFilter < Filter
-  @@opname = 'codef'
   def initialize(cust_list, denied_lines_file, mode = true)
     @dlines = file_lines denied_lines_file
     super cust_list, mode
@@ -351,11 +369,14 @@ class PageCodeTextFilter < Filter
     end
     return true
   end
+  
+  def self.opname()
+    'codef'
+  end
 end
 
 # PageInfo => *allowed HTTP response code* => PageInfo
 class RespCodeFlt < Filter
-  @opname = 'respcf'
   def initialize(cust_list, allowed_codes, mode = true)
     @codes = allowed_codes
     super cust_list, mode
@@ -364,11 +385,14 @@ class RespCodeFlt < Filter
   def do_job(job)
     return @codes.include? job.resp_code
   end
+  
+  def self.opname()
+    'respcf'
+  end
 end
 
 # PageInfo => *allowed page title* => PageInfo
 class PageTitleFlt < Filter
-  @opname = 'titlef'
   def initialize(cust_list, denied_titles_file, mode = true)
     @titles = file_lines denied_titles_file
     super cust_list, mode
@@ -382,11 +406,14 @@ class PageTitleFlt < Filter
     end
     return true
   end
+  
+  def self.opname()
+    'titlef'
+  end
 end
 
 # PageInfo => *allowed page title* => PageInfo
 class IpFileSaverFlt < Filter
-  @opname = 'saveip'
   def initialize(cust_list, file, mode = true)
     @file = file
     super cust_list, mode
@@ -397,11 +424,14 @@ class IpFileSaverFlt < Filter
     puts "wrote to file: #{job.ip}"
     return true
   end
+  
+  def self.opname()
+    'saveip'
+  end
 end
 
 # PageInfo => *check job for condition* => PageInfo
 class ConditionalFlt < Filter
-  @opname = 'condf'
   def initialize(cust_list, cond, mode = true)
     @cond = "job#{cond}"
     super cust_list, mode
@@ -411,6 +441,10 @@ class ConditionalFlt < Filter
     val = eval @cond
     puts "#{self}:   #{@cond} => #{val}"
     return val
+  end
+  
+  def self.opname()
+    'condf'
   end
 end
 
