@@ -38,16 +38,19 @@ class Node
       @cust_list.each{|cust|cust.enq job}
     else
       l = @cust_list.length
+      #puts "recv_list len: #{l}"
       return if l == 0
       # we must look for ready consumer until success
-      while true do
-	to = rand l
-	if(@cust_list[to].enq job)
-	  return
-	else
-	  puts "#{self}: consumer #{@cust_list[to]} is busy, looking for enother one..."
-	  sleep 1
-	end
+      while true
+        to = rand l
+        #puts "job would sent to #{to}"
+        if(@cust_list[to].enq job)
+          #puts "#{self}: job #{job} sent to consumer #{@cust_list[to]}"
+          return
+        else
+          puts "WARNING: #{self}: consumer #{@cust_list[to]} is busy, looking for enother one..."
+          sleep 1
+        end
       end
     end
   end
@@ -58,7 +61,7 @@ class Node
   end
 
   def add_rcv(rlist)
-    @cust_list + rlist
+    @cust_list += rlist
   end
 
   def start()
@@ -152,6 +155,7 @@ end
 require 'net/ping'
 def online?(host)
   res = Net::Ping::External.new.ping(host)
+  #puts "host up #{host}" if res
   return res
 end
 
@@ -165,18 +169,14 @@ class HostsUpSrc < Source
 #     sleep 1
 #     $example_addr
   end
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'rndup'
   end
 end
 
 class PrintFlt < Filter
-  def initialize(cust_list, text = '', mode = true)
+  def initialize(cust_list, mode, text)
     @msg = text
     super cust_list, mode
   end
@@ -185,11 +185,7 @@ class PrintFlt < Filter
     puts "#{@msg}#{job}"
     return true
   end
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'print'
   end
@@ -221,19 +217,17 @@ class PortCheckFlt < Filter
   
   def do_job(job)
     sock = nil
+    #puts "scan #{job}"
     @port_list.each do |port|
       if not port_open? job, port
-	return false
+        #puts "#{job}:#{port} closed"
+        return false
       end
-      next
+      #puts "#{job}:#{port} opened"
     end
     return true
   end
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'oport'
   end
@@ -298,11 +292,7 @@ class PageGraber < Transformer
     #puts "#{html}\n\n\n"
     return PageInfo.new job, code, html, text, title
   end
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'getpage'
   end
@@ -312,14 +302,10 @@ end
 class OperaOpener < Filter
   def do_job(job)
     system "opera -backgroundtab #{job.ip}"
-    puts "text len: #{job.text.length} code len: #{job.html.length}"
+    #puts "text len: #{job.text.length} code len: #{job.html.length}"
     return true
   end
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'oopera'
   end
@@ -342,11 +328,7 @@ end
 
 # PageInfo => *page text filtering* => PageInfo
 class TextFilter < Filter
-<<<<<<< HEAD
   def initialize(cust_list, mode, denied_lines_file)
-=======
-  def initialize(cust_list, denied_lines_file, mode = true)
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
     @dlines = file_lines denied_lines_file
     super cust_list, mode
   end
@@ -356,7 +338,7 @@ class TextFilter < Filter
     begin    
       @dlines.each do |dline|
 	if job.text.index dline
-	  puts "#{job} blamed: text contains #{dline}"
+	  puts "#{job.ip} blamed: text contains #{dline}"
 	  return false
 	end
       end
@@ -364,11 +346,7 @@ class TextFilter < Filter
     end
     return true
   end
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'textf'
   end
@@ -376,11 +354,7 @@ end
 
 # PageInfo => *page code text filtering* => PageInfo
 class PageCodeTextFilter < Filter
-<<<<<<< HEAD
   def initialize(cust_list, mode, denied_lines_file)
-=======
-  def initialize(cust_list, denied_lines_file, mode = true)
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
     @dlines = file_lines denied_lines_file
     super cust_list, mode
   end
@@ -400,11 +374,7 @@ class PageCodeTextFilter < Filter
     end
     return true
   end
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'codef'
   end
@@ -412,11 +382,7 @@ end
 
 # PageInfo => *allowed HTTP response code* => PageInfo
 class RespCodeFlt < Filter
-<<<<<<< HEAD
   def initialize(cust_list, mode, allowed_codes)
-=======
-  def initialize(cust_list, allowed_codes, mode = true)
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
     @codes = allowed_codes
     super cust_list, mode
   end
@@ -424,11 +390,7 @@ class RespCodeFlt < Filter
   def do_job(job)
     return @codes.include? job.resp_code
   end
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'respcf'
   end
@@ -436,11 +398,7 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class PageTitleFlt < Filter
-<<<<<<< HEAD
   def initialize(cust_list, mode, denied_titles_file)
-=======
-  def initialize(cust_list, denied_titles_file, mode = true)
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
     @titles = file_lines denied_titles_file
     super cust_list, mode
   end
@@ -453,11 +411,7 @@ class PageTitleFlt < Filter
     end
     return true
   end
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'titlef'
   end
@@ -465,11 +419,7 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class IpFileSaverFlt < Filter
-<<<<<<< HEAD
   def initialize(cust_list, mode, file)
-=======
-  def initialize(cust_list, file, mode = true)
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
     @file = file
     super cust_list, mode
   end
@@ -479,11 +429,7 @@ class IpFileSaverFlt < Filter
     puts "wrote to file: #{job.ip}"
     return true
   end
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'saveip'
   end
@@ -491,11 +437,7 @@ end
 
 # PageInfo => *check job for condition* => PageInfo
 class ConditionalFlt < Filter
-<<<<<<< HEAD
   def initialize(cust_list, mode, cond)
-=======
-  def initialize(cust_list, cond, mode = true)
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
     @cond = "job#{cond}"
     super cust_list, mode
   end
@@ -505,11 +447,7 @@ class ConditionalFlt < Filter
     puts "#{self}:   #{@cond} => #{val}"
     return val
   end
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
   def self.opname()
     'condf'
   end

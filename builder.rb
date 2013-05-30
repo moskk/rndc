@@ -1,4 +1,4 @@
-require './rndc.rb'
+require './rndcbase.rb'
 
 def between(str, l, r)
   il = str.index l
@@ -147,11 +147,7 @@ end
 
 # tool chain builder
 class TCBuilder
-<<<<<<< HEAD
-  @@n = [HostsUpSrc, PrintFlt, PortCheckFlt, TextFilter, PageCodeTextFilter, OperaOpener, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, ConditionalFlt, PageGraber]
-=======
   @@n = [HostsUpSrc, PrintFlt, OperaOpener, PortCheckFlt, TextFilter, PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, ConditionalFlt, PageGraber]
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
 
   @nodemap = {}
   @nodes_descr = {}
@@ -159,8 +155,8 @@ class TCBuilder
   @valid = false
   @log = []
 
-  attr_accessor :valid
-  attr_accessor :log
+  attr_reader :valid
+  attr_reader :log
 
   def initialize(script_file)
     @nodemap = {}
@@ -248,11 +244,10 @@ class TCBuilder
   def start_script()
     # creating node actors
     @nodes_descr.each_pair do |tag, node|
-      puts node.inspect
       param = eval node.param
       @nodes[tag] ||= []
       1.upto node.count do
-        @nodes[tag] << @nodemap[node.nodetype].new([], param, (node.passtype == :toall))
+        @nodes[tag] << @nodemap[node.nodetype].new([], (node.passtype == :toall), param)
       end
     end
 
@@ -297,17 +292,12 @@ end
 
 tcb = TCBuilder.new './discover.script'
 puts tcb.log
+gets if tcb.valid
 
-<<<<<<< HEAD
 #puts between "|4234|", '|', '|'
 
 
 
-
-
-=======
-gets
->>>>>>> 6fc1b2b1a43799facc12117c36bb279f6df1a75d
 
 
 
