@@ -2,8 +2,10 @@
 well, **rndc** is a tool for serching of web-pages. currenly it can discover 
 network hosts, scan ports, download pages, filter server responces by some 
 properties (server responce code, page code/text content, page title), 
-and give away host info into text file or into browser. you can't rob 
-the caravans yet but this option is on develop.
+and give away host info into text file or into browser. 
+
+you can't rob the caravans yet but this option is on develop. so you can 
+try to search some caravans, lol.
 
 # USAGE
 ## Basic
