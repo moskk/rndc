@@ -6,6 +6,7 @@ and give away host info into text file or into browser. you can't rob
 the caravans yet but this option is on develop.
 
 # USAGE
+## Basic
 **rndc** provides you a set of tools which can be linked into chains. every 
 node of this chain may have one of those types:
   * *source* that generates some job
@@ -16,7 +17,8 @@ to use **rndc** you can:
   * manualy use classes defined in *rndcbase.rb* to create tool chains **OR**
   * use special building tool. just write a script and pass it to TCBuilder.
 
-TCBuilder script consists of node descriptions. every node performing some operation 
+## TCBuilder scripting
+TCBuilder (tool chain builder) script consists of node descriptions. every node performing some operation 
 on jobs and have a list of nodes that will receive (or not) this job after operation 
 is done. this descriptions are looks like this:
 `tag (operation|parameter|[quantity]) passtype receiver1,receiver2,...,receiverN`
