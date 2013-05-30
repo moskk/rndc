@@ -34,6 +34,7 @@ successfully operated job would be passed to receivers using some *passtype*:
   when all receivers are busy.
   * **?** result will be passed to only one randomly choosen receiver. node will attempt
   to pass the job untill it find a free consumer, so this pass type is reliable.
+
 description concludes with a list of consumers. it consists of tags of some another 
 nodes (except sources, that cant receive jobs) separated by commas. *passtype* and 
 receiver list may be ommited, and then jobs will be suppressed after processing.
