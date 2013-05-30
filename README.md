@@ -42,4 +42,7 @@ successfully operated job would be passed to receivers using some *passtype*:
 description concludes with a list of consumers. it consists of tags of some another 
 nodes (except sources, that cant receive jobs) separated by commas. *passtype* and 
 receiver list may be ommited, and then jobs will be suppressed after processing.
+
 script lines that begins from **#** are comments.
+
+look at file *discover.script*, it is an example script.
