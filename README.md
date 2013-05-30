@@ -8,13 +8,13 @@ the caravans yet but this option is on develop.
 # USAGE
 **rndc** provides you a set of tools which can be linked into chains. every 
 node of this chain may have one of those types:
-  - *source* that generates some job
-  - *filter* that pass (or not) the job for enother node depending on some condition
-  - *transformer* that transforms the job into something enother (actualy job too)
+  * *source* that generates some job
+  * *filter* that pass (or not) the job for enother node depending on some condition
+  * *transformer* that transforms the job into something enother (actualy job too)
 
 to use **rndc** you can:
-  - manualy use classes defined in *rndcbase.rb* to create tool chains **OR**
-  - use special building tool. just write a script and pass it to TCBuilder.
+  * manualy use classes defined in *rndcbase.rb* to create tool chains **OR**
+  * use special building tool. just write a script and pass it to TCBuilder.
 
 TCBuilder script consists of node descriptions. every node performing some operation 
 on jobs and have a list of nodes that will receive (or not) this job after operation 
@@ -29,10 +29,10 @@ would not be referenced.
 every node can contain some *quantity* of similar actors that will operate simultaneously. 
 1 is default value if no quantity block performed.
 successfully operated job would be passed to receivers using some *passtype*:
-  **>** result will be passed to every actor in all receiving nodes *that is not busy*.
+  * **>** result will be passed to every actor in all receiving nodes *that is not busy*.
   this type of passing is unreliable as far as it can cause loosing of job in case 
   when all receivers are busy.
-  **?** result will be passed to only one randomly choosen receiver. node will attempt
+  * **?** result will be passed to only one randomly choosen receiver. node will attempt
   to pass the job untill it find a free consumer, so this pass type is reliable.
 description concludes with a list of consumers. it consists of tags of some another 
 nodes (except sources, that cant receive jobs) separated by commas. *passtype* and 
