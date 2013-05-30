@@ -8,3 +8,6 @@ f_title      (titlef|'./denied.titles'|-)  ?    f_ctext
 f_ctext      (textf|'./denied.words'|-)    ?    f_oopera
 f_oopera     (oopera)                      ?    f_prnt_res
 f_prnt_res   (print|'found: '|)
+
+
+

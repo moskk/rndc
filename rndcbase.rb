@@ -5,16 +5,18 @@ $example_addr = '66.71.253.245'
 
 require 'thread'
 class Node
-  #attr_accessor :name
+  attr_accessor :invert
   @jobs = nil
   @cust_list = []
   # mode: true - result sent to all customers, false - result sent to any customer
   @mode = true
   @thread = nil
+  @invert = false
   def initialize(cust_list, mode, param = nil)
     @jobs = Queue.new
     @cust_list = cust_list
     @mode = mode
+    @invert = false
   end
   
   # enqueueing new job
@@ -110,6 +112,9 @@ class Filter < Node
       job = @jobs.pop
       next if not job
       res = do_job job
+      if @invert
+        res = (not res)
+      end 
       pass job if res
     end
   end

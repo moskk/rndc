@@ -19,16 +19,16 @@ def pass_dict()
 end
 
 class NodeDescription
-  attr_accessor :source
+  attr_reader :source
   attr_accessor :tag
-  attr_accessor :nodetype
-  attr_accessor :inverted
-  attr_accessor :param
-  attr_accessor :count
-  attr_accessor :passtype
-  attr_accessor :receivers
-  attr_accessor :valid
-  attr_accessor :error
+  attr_reader :nodetype
+  attr_reader :inverted
+  attr_reader :param
+  attr_reader :count
+  attr_reader :passtype
+  attr_reader :receivers
+  attr_reader :valid
+  attr_reader :error
 
   def parse(descr)
     @source = descr.clone
@@ -247,7 +247,9 @@ class TCBuilder
       param = eval node.param
       @nodes[tag] ||= []
       1.upto node.count do
-        @nodes[tag] << @nodemap[node.nodetype].new([], (node.passtype == :toall), param)
+        newnode = @nodemap[node.nodetype].new([], (node.passtype == :toall), param)
+        newnode.invert = node.inverted
+        @nodes[tag] << newnode
       end
     end
 
@@ -266,6 +268,8 @@ class TCBuilder
         node.start
       end
     end
+    
+    @valid = true
 
     return true
   end
