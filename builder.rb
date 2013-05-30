@@ -3,7 +3,7 @@ require './rndc.rb'
 def between(str, l, r)
   il = str.index l
   return nil if il.nil?
-  ir = str.index r, il
+  ir = str.index r, il+1
   return nil if ir.nil?
   return str[il+1..ir-1]
 end
@@ -291,10 +291,11 @@ if not node.valid
 end
 =end
 
-#tcb = TCBuilder.new './discover.script'
-#puts tcb.log
+tcb = TCBuilder.new './discover.script'
+puts tcb.log
 
-puts between "--|4234|--", '|', '|'
+#puts between "|4234|", '|', '|'
+
 
 
 
