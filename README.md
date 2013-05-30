@@ -29,7 +29,7 @@ would not be referenced.
 every node can contain some *quantity* of similar actors that will operate simultaneously. 
 1 is default value if no quantity block performed.
 successfully operated job would be passed to receivers using some *passtype*:
-  * **>** result will be passed to every actor in all receiving nodes *that is not busy*.
+  * **>** result will be passed to every actor *that is not busy* in all receiving nodes.
   this type of passing is unreliable as far as it can cause loosing of job in case 
   when all receivers are busy.
   * **?** result will be passed to only one randomly choosen receiver. node will attempt
@@ -37,4 +37,4 @@ successfully operated job would be passed to receivers using some *passtype*:
 description concludes with a list of consumers. it consists of tags of some another 
 nodes (except sources, that cant receive jobs) separated by commas. *passtype* and 
 receiver list may be ommited, and then jobs will be suppressed after processing.
-script lines that begins from # are comments.
+script lines that begins from **#** are comments.
