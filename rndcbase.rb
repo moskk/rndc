@@ -6,6 +6,7 @@ $example_addr = '66.71.253.245'
 require 'thread'
 class Node
   attr_accessor :invert
+  attr_reader :thread
   @jobs = nil
   @cust_list = []
   # mode: true - result sent to all customers, false - result sent to any customer
@@ -68,12 +69,13 @@ class Node
 
   def start()
     @thread = Thread.new{
-      #sleep 5
-      begin
-        payload
-      rescue => e
-	puts "payload: some shit happened in #{self}: #{e.message}\n"
-	e.backtrace.each{|line| puts "\t#{line}"}
+      while true
+        begin
+          payload
+        rescue => e
+          puts "payload: some shit happened in #{self}: #{e.message}\n"
+          e.backtrace.each{|line| puts "\t#{line}"}
+        end
       end
     }    
   end
@@ -187,7 +189,7 @@ class PrintFlt < Filter
   end
   
   def do_job(job)
-    puts "#{@msg}#{job}"
+    puts "#{@msg}#{job.ip}"
     return true
   end
 
@@ -288,10 +290,15 @@ class PageInfo
   end
 end
 
+require 'timeout'
 class PageGraber < Transformer
   def do_job(job)
-    text, html, code, title = grab_page job
-    return nil if text.nil?
+    text, html, code, title = nil, nil, nil, nil
+    succ = Timeout::timeout(5) {
+      text, html, code, title = grab_page job
+    }
+    puts "#{job.ip}: page grabing timed out" if not succ
+    return nil if code.nil? or not succ
     #puts ">>>>>>> grabbed page from >#{job}<, title >#{title}<, resp_code #{code}"
     #puts "#{text}\n\n\n"
     #puts "#{html}\n\n\n"
@@ -455,6 +462,29 @@ class ConditionalFlt < Filter
 
   def self.opname()
     'condf'
+  end
+end
+
+# PageInfo => *check job for domain name* => PageInfo
+require 'resolv'
+class ReverseDnsFlt < Filter
+  def initialize(cust_list, mode, param)
+    super cust_list, mode
+  end
+  
+  def do_job(job)
+    name = nil
+    begin
+      name = Resolv.getname job.ip
+    rescue
+      return false
+    end
+    puts name
+    return true
+  end
+
+  def self.opname()
+    'rdnsf'
   end
 end
 

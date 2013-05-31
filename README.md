@@ -1,4 +1,4 @@
-# DESCRIPTION
+## DESCRIPTION
 well, **rndc** is a tool for serching of web-pages. currenly it can discover 
 network hosts, scan ports, download pages, filter server responces by some 
 properties (server responce code, page code/text content, page title), 
@@ -7,8 +7,8 @@ and give away host info into text file or into browser.
 you can't rob the caravans yet but this option is on develop. so you can 
 try to search some caravans, lol.
 
-# USAGE
-## Basic
+## USAGE
+### Basic
 **rndc** provides you a set of tools which can be linked into chains. every 
 node of this chain may have one of those types:
   * *source* that generates some job
@@ -19,7 +19,7 @@ to use **rndc** you can:
   * manualy use classes defined in *rndcbase.rb* to create tool chains **OR**
   * use special building tool. just write a script and pass it to TCBuilder.
 
-## TCBuilder scripting
+### TCBuilder scripting
 TCBuilder (tool chain builder) script consists of node descriptions. every node performing some operation 
 on jobs and have a list of nodes that will receive (or not) this job after operation 
 is done. this descriptions are looks like this:

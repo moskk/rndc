@@ -13,7 +13,7 @@ end
 :toany
 :paser
 def pass_dict()
-  passh = {'>'=>:toall,'?'=>:toany,nil=>:nopas}
+  passh = {'>'=>:toall,'?'=>:toany, nil=>:nopas}
   passh.default = :paser
   return passh
 end
@@ -52,7 +52,7 @@ class NodeDescription
     #puts "tag #{tag}"
 
     # operation
-    irpar = descr.index ')'
+    irpar = descr.rindex ')'
     oper = between descr,'(',')'
     #puts "oper #{oper}        #{ilpar} #{irpar}"
     if oper.nil?
@@ -147,7 +147,9 @@ end
 
 # tool chain builder
 class TCBuilder
-  @@n = [HostsUpSrc, PrintFlt, OperaOpener, PortCheckFlt, TextFilter, PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, ConditionalFlt, PageGraber]
+  @@n = [HostsUpSrc, PrintFlt, OperaOpener, PortCheckFlt, TextFilter, 
+    PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, 
+    ConditionalFlt, PageGraber, ReverseDnsFlt]
 
   @nodemap = {}
   @nodes_descr = {}
@@ -158,12 +160,13 @@ class TCBuilder
   attr_reader :valid
   attr_reader :log
 
-  def initialize(script_file)
+  def initialize(script_file, run = true)
     @nodemap = {}
     @nodes_descr = {}
     @nodes = {}
     @valid = false
     @log = []
+    @threads = []
 
     @log << 'TCBuilder alloved actions:'
     @@n.each do |node|
@@ -179,6 +182,11 @@ class TCBuilder
       return false
     end
 
+    if not run
+      @log << "dry run completed"
+      return true
+    end
+    
     if start_script
       @log << "script \"#{script_file}\" started"
     else
@@ -266,6 +274,7 @@ class TCBuilder
     @nodes.each_value do |nodelist|
       nodelist.each do |node|
         node.start
+        @threads << node.thread
       end
     end
     
@@ -281,24 +290,20 @@ class TCBuilder
       end
     end
   end
+  
+  def join()
+    return if @threads.empty?
+    while true
+      @threads.each do |th|
+        if th.alive?
+          sleep 0.5
+          next
+        end
+        return true
+      end
+    end
+  end
 end
-
-
-
-
-
-=begin
-node = NodeDescription.new 'prt(print[5]|45|-------++-+)?dsf'
-if not node.valid
-  puts node.error
-end
-=end
-
-tcb = TCBuilder.new './discover.script'
-puts tcb.log
-gets if tcb.valid
-
-#puts between "|4234|", '|', '|'
 
 
 
