@@ -7,6 +7,11 @@ and give away host info into text file or into browser.
 you can't rob the caravans yet but this option is on develop. so you can 
 try to search some caravans, lol.
 
+## DEPENDENCIES
+**rndc** depends of following gems:
+  * nokogiri
+  * net-ping
+
 ## USAGE
 ### Basic
 **rndc** provides you a set of tools which can be linked into chains. every 
@@ -46,3 +51,8 @@ receiver list may be ommited, and then jobs will be suppressed after processing.
 script lines that begins from **#** are comments.
 
 look at file *discover.script*, it is an example script.
+
+## TODO LIST
+[x] some command string interface
+[ ] built-in documentation by script functions
+[ ] ...

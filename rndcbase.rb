@@ -3,6 +3,10 @@
 $example_addr = '93.158.134.203'
 $example_addr = '66.71.253.245'
 
+require 'ostruct'
+class Job < OpenStruct
+end
+
 require 'thread'
 class Node
   attr_accessor :invert
@@ -170,8 +174,11 @@ class HostsUpSrc < Source
   def spawn
     while true
       addr = mk_rnd_ip
-      #puts "addr #{addr}"
-      return addr if online? addr
+      if online? addr
+        job = Job.new
+        job.ip = addr
+        return job
+      end
     end
 #     sleep 1
 #     $example_addr
@@ -223,10 +230,9 @@ class PortCheckFlt < Filter
   end
   
   def do_job(job)
-    sock = nil
     #puts "scan #{job}"
     @port_list.each do |port|
-      if not port_open? job, port
+      if not port_open? job.ip, port
         #puts "#{job}:#{port} closed"
         return false
       end
@@ -275,34 +281,26 @@ def grab_page(ip)
 end
 
 # IP => PageInfo
-class PageInfo
-  attr_accessor :text
-  attr_accessor :ip
-  attr_accessor :resp_code
-  attr_accessor :html
-  attr_accessor :title
-  def initialize(ip, code, html, text, title)
-    @text = text
-    @ip = ip
-    @resp_code = code
-    @html = html
-    @title = title
-  end
-end
-
 require 'timeout'
 class PageGraber < Transformer
   def do_job(job)
-    text, html, code, title = nil, nil, nil, nil
-    succ = Timeout::timeout(5) {
-      text, html, code, title = grab_page job
-    }
+    text, html, code, title, succ = nil
+    begin
+      succ = Timeout::timeout(5) {
+        text, html, code, title = grab_page job.ip
+      }
+    rescue Timeout::Error
+    end
     puts "#{job.ip}: page grabing timed out" if not succ
     return nil if code.nil? or not succ
     #puts ">>>>>>> grabbed page from >#{job}<, title >#{title}<, resp_code #{code}"
     #puts "#{text}\n\n\n"
     #puts "#{html}\n\n\n"
-    return PageInfo.new job, code, html, text, title
+    job.resp_code = code
+    job.html = html
+    job.text = text
+    job.title = title
+    return job
   end
 
   def self.opname()

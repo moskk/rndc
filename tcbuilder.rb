@@ -81,18 +81,6 @@ class NodeDescription
       end
     end
     #puts "receivers #{receivers}"
-
-=begin
-    # parsing operation
-    @param = between oper,'{','}'
-    puts "param #{param}"
-    @count = between(oper,'[',']').to_i
-    puts "count #{count}"
-    @nodetype = oper[/\w*/]
-    puts "nodetype #{nodetype}"
-    @inverted = (oper[-1] == '-')
-    puts "inverted #{inverted}"
-=end
     while not ( oper.nil? or oper.empty?)
       case oper[0]
       when /\w/
