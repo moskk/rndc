@@ -85,6 +85,7 @@ class NodeDescription
     end
     #puts "receivers #{receivers}"
     while not ( oper.nil? or oper.empty?)
+      #puts "--------#{oper[0]}"
       case oper[0]
       when /\w/
         @nodetype = oper.slice!(/\w*/)
@@ -278,6 +279,7 @@ class TCBuilder
       end
     end
     
+    @log << ''
     @valid = true
 
     return true

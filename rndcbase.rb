@@ -56,7 +56,7 @@ class Node
           #puts "#{self}: job #{job} sent to consumer #{@cust_list[to]}"
           return
         else
-          puts "WARNING: #{self}: consumer #{@cust_list[to]} is busy, looking for enother one..."
+          #puts "WARNING: #{self}: consumer #{@cust_list[to]} is busy, looking for enother one..."
           sleep 1
         end
       end
@@ -214,7 +214,7 @@ class PrintFlt < Filter
   end
   
   def self.descr()
-    "just prints job IP and pass the job"
+    "just prints job IP and pass the job. parameter - message string printed before IP"
   end
 end
 
@@ -263,9 +263,6 @@ class PortCheckFlt < Filter
   end
 end
 
-require 'nokogiri'
-require 'net/http'
-
 def shrink_text(text)
   text = text.gsub '\n', ' '
   text = text.gsub '\t', ' '
@@ -273,6 +270,8 @@ def shrink_text(text)
   return text
 end
 
+require 'nokogiri'
+require 'net/http'
 def grab_page(ip)
   html = nil
   begin
@@ -340,11 +339,12 @@ class OperaOpener < Filter
     'oopera'
   end
   def self.descr()
-    "just sends IP to Opera web-browser and pass the job"
+    "just sends IP to Opera web browser and pass the job"
   end
 end
 
 def file_lines(path)
+  return nil if path.nil? or not File.exists? path
   file = File.new(path, "rt")
   res = []
   while line = file.gets
@@ -352,7 +352,7 @@ def file_lines(path)
     if line.empty?
       next
     end
-    line = shrink_text line
+    #line = shrink_text line
     res.push line
   end
   file.close
@@ -361,8 +361,8 @@ end
 
 # PageInfo => *page text filtering* => PageInfo
 class TextFilter < Filter
-  def initialize(cust_list, mode, denied_lines_file)
-    @dlines = file_lines denied_lines_file
+  def initialize(cust_list, mode, file)
+    @dlines = file_lines file
     super cust_list, mode
   end
   
@@ -370,10 +370,10 @@ class TextFilter < Filter
     return false if not job.text
     begin    
       @dlines.each do |dline|
-	if job.text.index dline
-	  puts "#{job.ip} matched: text contains #{dline}"
-	  return false
-	end
+        if job.text.index dline
+          puts "#{job.ip} matched: text contains #{dline}"
+          return false
+        end
       end
     rescue
     end
@@ -390,8 +390,8 @@ end
 
 # PageInfo => *page code text filtering* => PageInfo
 class PageCodeTextFilter < Filter
-  def initialize(cust_list, mode, denied_lines_file)
-    @dlines = file_lines denied_lines_file
+  def initialize(cust_list, mode, file)
+    @dlines = file_lines file
     super cust_list, mode
   end
   
@@ -440,8 +440,8 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class PageTitleFlt < Filter
-  def initialize(cust_list, mode, denied_titles_file)
-    @titles = file_lines denied_titles_file
+  def initialize(cust_list, mode, titles_file)
+    @titles = file_lines titles_file
     super cust_list, mode
   end
   
@@ -508,6 +508,9 @@ end
 require 'resolv'
 class ReverseDnsFlt < Filter
   def initialize(cust_list, mode, param)
+    @levels = param[:levels]
+    @allowed = file_lines param[:allowed]
+    @denied = file_lines param[:denied]
     super cust_list, mode
   end
   
@@ -518,6 +521,34 @@ class ReverseDnsFlt < Filter
     rescue
       return false
     end
+    job.domain = name
+    puts "domain #{name}"
+    
+    if not @levels.nil?
+      lvls = name.split('.').count
+      val = eval(lvls.to_s + @levels)
+      if not val
+        puts "invalid levels: #{lvls}"
+        return false
+      end
+    end
+    
+    if not @denied.nil?
+      @denied.each do |line|
+        if not name[line].nil?
+          return false
+        end
+      end
+    end
+    
+    if not @allowed.nil?
+      @allowed.each do |line|
+        if not name[line].nil?
+          return true
+        end
+      end
+    end
+    
     return true
   end
 

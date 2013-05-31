@@ -51,7 +51,7 @@ else
   file = ARGV[fi+1]
 end
 
-tcb = TCBuilder.new './discover.script', run
+tcb = TCBuilder.new file, run
 puts tcb.log
 tcb.join
 
