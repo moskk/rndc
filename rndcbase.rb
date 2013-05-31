@@ -477,7 +477,6 @@ class ReverseDnsFlt < Filter
     rescue
       return false
     end
-    puts name
     return true
   end
 

@@ -16,9 +16,11 @@ try to search some caravans, lol.
 ### Basic
 **rndc** provides you a set of tools which can be linked into chains. every 
 node of this chain may have one of those types:
-  * *source* that generates some job
+  * *source* that generates some job. this job contains some arbitrary properties
+  that will used by other nodes (it is usually an ip address or a domain name).
   * *filter* that pass (or not) the job for enother node depending on some condition
-  * *transformer* that transforms the job into something enother (actualy job too)
+  * *transformer* that transforms the job into something enother (actualy job too). 
+  for example, it can extend job properties.
 
 to use **rndc** you can:
   * manualy use classes defined in *rndcbase.rb* to create tool chains **OR**
@@ -53,6 +55,6 @@ script lines that begins from **#** are comments.
 look at file *discover.script*, it is an example script.
 
 ## TODO LIST
-[x] some command string interface
-[ ] built-in documentation by script functions
-[ ] ...
+- [x] some convinient command line interface
+- [ ] built-in documentation by script functions
+- [ ] extending of filter functionality (reverse DNS and others)
