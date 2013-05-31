@@ -11,6 +11,7 @@ require 'thread'
 class Node
   attr_accessor :invert
   attr_reader :thread
+  attr_reader :cust_list
   @jobs = nil
   @cust_list = []
   # mode: true - result sent to all customers, false - result sent to any customer
@@ -90,6 +91,10 @@ class Node
   end
 
   def self.opname()
+    nil
+  end
+
+  def self.descr()
     nil
   end
 end
@@ -187,6 +192,10 @@ class HostsUpSrc < Source
   def self.opname()
     'rndup'
   end
+
+  def self.descr()
+    "generates some random IP address that is online now"
+  end
 end
 
 class PrintFlt < Filter
@@ -201,7 +210,11 @@ class PrintFlt < Filter
   end
 
   def self.opname()
-    'print'
+    'printip'
+  end
+  
+  def self.descr()
+    "just prints job IP and pass the job"
   end
 end
 
@@ -243,6 +256,10 @@ class PortCheckFlt < Filter
 
   def self.opname()
     'oport'
+  end
+
+  def self.descr()
+    "check given IP on opened port(s), pass the job if all ports are opened. parameter - list of port numbers"
   end
 end
 
@@ -306,6 +323,9 @@ class PageGraber < Transformer
   def self.opname()
     'getpage'
   end
+  def self.descr()
+    "download page, save its HTML code, text, title, server's responce code. mandatory transformer that must be called before calling other nodes that use mentioned job properties"
+  end
 end
 
 # IP => *open in opera* => IP
@@ -318,6 +338,9 @@ class OperaOpener < Filter
 
   def self.opname()
     'oopera'
+  end
+  def self.descr()
+    "just sends IP to Opera web-browser and pass the job"
   end
 end
 
@@ -348,7 +371,7 @@ class TextFilter < Filter
     begin    
       @dlines.each do |dline|
 	if job.text.index dline
-	  puts "#{job.ip} blamed: text contains #{dline}"
+	  puts "#{job.ip} matched: text contains #{dline}"
 	  return false
 	end
       end
@@ -359,6 +382,9 @@ class TextFilter < Filter
 
   def self.opname()
     'textf'
+  end
+  def self.descr()
+    "check page TEXT for some strings matching. suppress the job if any matches found. parameter - list of strings file path"
   end
 end
 
@@ -388,6 +414,9 @@ class PageCodeTextFilter < Filter
   def self.opname()
     'codef'
   end
+  def self.descr()
+    "check page CODE for some strings matching. suppress the job if any matches found.  parameter - list of strings file path"
+  end
 end
 
 # PageInfo => *allowed HTTP response code* => PageInfo
@@ -403,6 +432,9 @@ class RespCodeFlt < Filter
 
   def self.opname()
     'respcf'
+  end
+  def self.descr()
+    "check HTTP-server responce code for matching some values. parameter - list of allowed codes"
   end
 end
 
@@ -425,6 +457,9 @@ class PageTitleFlt < Filter
   def self.opname()
     'titlef'
   end
+  def self.descr()
+    "check page TITLE for some strings matching. suppress the job if any matches found.  parameter - list of strings file path"
+  end
 end
 
 # PageInfo => *allowed page title* => PageInfo
@@ -436,12 +471,15 @@ class IpFileSaverFlt < Filter
   
   def do_job(job)
     system "echo '#{job.ip}' >> #{@file}"
-    puts "wrote to file: #{job.ip}"
+    #puts "wrote to file: #{job.ip}"
     return true
   end
 
   def self.opname()
     'saveip'
+  end
+  def self.descr()
+    "saves job's IP as text into file. parameter - output file name"
   end
 end
 
@@ -460,6 +498,9 @@ class ConditionalFlt < Filter
 
   def self.opname()
     'condf'
+  end
+  def self.descr()
+    "check the job for some condition given as Ruby string"
   end
 end
 
@@ -482,6 +523,9 @@ class ReverseDnsFlt < Filter
 
   def self.opname()
     'rdnsf'
+  end
+  def self.descr()
+    "gathers a job's domain name by IP, suppress unnamed jobs"
   end
 end
 

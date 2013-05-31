@@ -1,10 +1,12 @@
-#hi. i'm a comment :)
-
+#hi. i'm just a comment :)
+#>
+#>              this script is AWESOME!!
+#>
              (rndup[50])                   ?    f_80
 f_80         (oport|[80]|[100])            ?    t_getpage
-t_getpage    (getpage)                     ?    f_rdns
-f_rcode      (respcf|[200,201,202,203,204,205,206]|)?f_oopera
-#f_title      (titlef|'./denied.titles'|)  ?    f_ctext
-#f_ctext      (textf|'./denied.words'|)    ?    f_rcode
-f_rdns       (rdnsf[5])                    ?    f_rcode
+t_getpage    (getpage)                     ?    f_rcode
+#f_title      (titlef|'./denied.titles'|)   ?    f_ctext
+#f_ctext      (textf|'./denied.words'|)     ?    f_rcode
+f_rcode      (respcf|[200,201,202,203,204,205,206]|)?f_rdns
+f_rdns       (rdnsf[5])                    ?    f_oopera
 f_oopera     (oopera)                      ?    

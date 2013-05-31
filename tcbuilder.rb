@@ -33,17 +33,20 @@ class NodeDescription
   def parse(descr)
     @source = descr.clone
 
+    if descr[0] == '#'
+      if descr.length > 1 and descr[1] == '>'
+        puts descr[2..-1]
+      end
+      @nodetype = nil
+      @valid = true
+      return true
+    end
+
     # string preparation
     descr.chomp!
     descr.gsub! ' ',''
     descr.gsub! "\t",''
     #puts ">> #{descr}"
-
-    if descr[0] == '#'
-      @nodetype = nil
-      @valid = true
-      return true
-    end
 
    # tag
     ilpar = descr.index '('
@@ -134,10 +137,10 @@ class NodeDescription
 end
 
 # tool chain builder
-class TCBuilder
-  @@n = [HostsUpSrc, PrintFlt, OperaOpener, PortCheckFlt, TextFilter, 
+$n = [HostsUpSrc, PrintFlt, OperaOpener, PortCheckFlt, TextFilter, 
     PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, 
     ConditionalFlt, PageGraber, ReverseDnsFlt]
+class TCBuilder
 
   @nodemap = {}
   @nodes_descr = {}
@@ -156,10 +159,8 @@ class TCBuilder
     @log = []
     @threads = []
 
-    @log << 'TCBuilder alloved actions:'
-    @@n.each do |node|
+    $n.each do |node|
       @nodemap[node.opname] = node
-      @log << "\t- #{node.opname}"
     end
 
     @log << "loading script file \"#{script_file}\"..."
@@ -190,7 +191,7 @@ class TCBuilder
     script = file_lines script_file
     fail = false
     #puts script
-    def_tag = ':aaaa'
+    def_tag = 'unnamed_node:aaaa'
     script.each do |line|
       node = NodeDescription.new line
       if not node.valid
@@ -255,6 +256,17 @@ class TCBuilder
         @nodes[tag].each do |node|
           node.add_rcv @nodes[receiver]
         end
+      end
+    end
+    
+    # checking for chain integrity
+    @nodes.each_pair do |tag, nodelist|
+      if nodelist.empty?
+        @log << "WARNING: node \"#{tag}\" has no actors. is it ok?"
+        next
+      end
+      if nodelist[0].cust_list.empty?
+        @log << "WARNING: node \"#{tag}\" has no consumers, so its all jobs will be suppressed. is it ok?"
       end
     end
     

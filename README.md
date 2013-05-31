@@ -24,7 +24,7 @@ node of this chain may have one of those types:
 
 to use **rndc** you can:
   * manualy use classes defined in *rndcbase.rb* to create tool chains **OR**
-  * use special building tool. just write a script and pass it to TCBuilder.
+  * use special building tool. just write a script and pass it to **rndc.rb**.
 
 ### TCBuilder scripting
 TCBuilder (tool chain builder) script consists of node descriptions. every node performing some operation 
@@ -52,9 +52,11 @@ receiver list may be ommited, and then jobs will be suppressed after processing.
 
 script lines that begins from **#** are comments.
 
+if script line begins with **#>** then its trail will be printed on script parsing. it is rather useless, i know :)
+
 look at file *discover.script*, it is an example script.
 
 ## TODO LIST
 - [x] some convinient command line interface
-- [ ] built-in documentation by script functions
+- [x] built-in documentation by script functions
 - [ ] extending of filter functionality (reverse DNS and others)
