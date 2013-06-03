@@ -26,7 +26,7 @@ to use **rndc** you can:
   * manualy use classes defined in *rndcbase.rb* to create tool chains **OR**
   * use special building tool. just write a script and pass it to **rndc.rb**.
 
-### TCBuilder scripting
+### Tool chain builder scripting
 TCBuilder (tool chain builder) script consists of node descriptions. every node 
 performing some operation on jobs and have a list of nodes that will receive 
 (or not) this job after operation is done. this descriptions are looks like this:
