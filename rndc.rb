@@ -56,7 +56,7 @@ puts tcb.log
 
 module Kernel
   def puts (*params)
-    print Time.now.to_s, ' '
+    print Time.now.to_s.split(' ')[1], ' '
     params.each do |param| print param end
     print "\n"
   end
