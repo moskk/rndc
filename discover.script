@@ -40,5 +40,7 @@ f_rcode(respcf|[200,201,202,203,204,205,206]|)?f_rdns
 f_rdns(rdnsf[5]|{:levels=>'<4'}|)?f_oopera
 
 
-#> 9. well... now we can look on it with our own eyes
-f_oopera(oopera)
+##> 9. well... now we can look on it with our own eyes
+#f_oopera(oopera)
+
+f_oopera(saveip|'~/reslist'|)

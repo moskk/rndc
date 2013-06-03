@@ -53,6 +53,15 @@ end
 
 tcb = TCBuilder.new file, run
 puts tcb.log
+
+module Kernel
+  def puts (*params)
+    print Time.now.to_s, ' '
+    params.each do |param| print param end
+    print "\n"
+  end
+end
+ 
 tcb.join
 
 

@@ -402,7 +402,7 @@ class PageCodeTextFilter < Filter
       code = shrink_text job.html
       @dlines.each do |dline|
 	if code.index dline
-	  puts "#{job.ip} blamed: page code contains #{dline}"
+	  puts "#{job.ip} matched: page code contains #{dline}"
 	  return false
 	end
       end
