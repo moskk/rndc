@@ -27,7 +27,8 @@ to use **rndc** you can:
   * use special building tool. just write a script and pass it to **rndc.rb**.
 
 ### Tool chain builder scripting
-TCBuilder (tool chain builder) script consists of node descriptions. every node 
+TCBuilder (tool chain builder) script consists of node descriptions. in fact 
+it is definition of directed graph that's every vertex (node) 
 performing some operation on jobs and have a list of nodes that will receive 
 (or not) this job after operation is done. this descriptions are looks like this:
 `tag (operation|parameter|[quantity]inverter) passtype receiver1,receiver2,...,receiverN`
@@ -69,4 +70,5 @@ look at file *discover.script*, it is an example script.
 - [x] some convinient command line interface
 - [x] built-in documentation by script functions
 - [ ] extending of filter functionality (reverse DNS and others)
-- [ ] use domain names in HTTP-requests (it is necessary sometimes)
+- [x] use domain names in HTTP-requests (it is necessary sometimes)
+- [x] merging command line keys (like netstat -nat)

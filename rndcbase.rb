@@ -1,7 +1,8 @@
 #! /usr/bin/ruby
 
-$example_addr = '93.158.134.203'
-$example_addr = '66.71.253.245'
+#$example_addr = '74.125.232.206'
+$example_addr = '77.88.21.3'
+#$example_addr = '66.71.253.245'
 
 require 'ostruct'
 class Job < OpenStruct
@@ -185,8 +186,12 @@ class HostsUpSrc < Source
         return job
       end
     end
-#     sleep 1
-#     $example_addr
+=begin
+    sleep 5
+    job = Job.new
+    job.ip = $example_addr
+    return job
+=end
   end
 
   def self.opname()
@@ -245,7 +250,7 @@ class PortCheckFlt < Filter
   def do_job(job)
     #puts "scan #{job}"
     @port_list.each do |port|
-      if not port_open? job.ip, port
+      if not port_open?(job.ip, port)
         #puts "#{job}:#{port} closed"
         return false
       end
@@ -272,10 +277,10 @@ end
 
 require 'nokogiri'
 require 'net/http'
-def grab_page(ip)
+def grab_page(url)
   html = nil
   begin
-    uri = URI("http://#{ip}/")
+    uri = URI(url)
     res = Net::HTTP.get_response(uri)
     #return nil if not res.response_body_permitted?
     html = res.body
@@ -299,11 +304,36 @@ end
 # IP => PageInfo
 require 'timeout'
 class PageGraber < Transformer
+  # page graber can use job's domain name field (if it is presented)
+  # for page querying. if some job have multiple names then 
+  # every name will be ascked for page and every response will spawn
+  # a new job. so we have to redefine payload
+  def payload
+    while true
+      job = @jobs.pop
+      next if not job
+      if not job.domain.nil?
+        job.domain.each do |d|
+          subjob = job.clone
+          subjob.domain = [d]
+          subjob = do_job subjob
+          next if not subjob
+          pass subjob
+        end
+      elsif not job.ip.empty?
+        job.delete_field 'domain'
+        job = do_job job
+        next if not job
+        pass job
+      end
+    end
+  end
+  
   def do_job(job)
     text, html, code, title, succ = nil
     begin
       succ = Timeout::timeout(5) {
-        text, html, code, title = grab_page job.ip
+        text, html, code, title = grab_page job
       }
     rescue Timeout::Error
     end
@@ -330,7 +360,8 @@ end
 # IP => *open in opera* => IP
 class OperaOpener < Filter
   def do_job(job)
-    system "opera -backgroundtab #{job.ip}"
+    url = job.domain.nil?? job.ip : job.domain[0]
+    system "opera -backgroundtab #{url}"
     #puts "text len: #{job.text.length} code len: #{job.html.length}"
     return true
   end
@@ -515,20 +546,29 @@ class ReverseDnsFlt < Filter
   end
   
   def do_job(job)
-    name = nil
+    names = nil
     begin
-      name = Resolv.getname job.ip
+      names = Resolv.getnames job.ip
     rescue
       return false
     end
-    job.domain = name
-    puts "domain #{name}"
+
+    return false if names.empty?
     
+    job.domain = names
+    
+    names.each do |name|
+      return false if not filter name
+    end
+    
+    return true
+  end
+  
+  def filter(name)
     if not @levels.nil?
       lvls = name.split('.').count
       val = eval(lvls.to_s + @levels)
       if not val
-        puts "invalid levels: #{lvls}"
         return false
       end
     end
@@ -548,7 +588,6 @@ class ReverseDnsFlt < Filter
         end
       end
     end
-    
     return true
   end
 
@@ -556,7 +595,7 @@ class ReverseDnsFlt < Filter
     'rdnsf'
   end
   def self.descr()
-    "gathers a job's domain name by IP, suppress unnamed jobs"
+    "gathers a job's domain names by IP, suppress unnamed jobs"
   end
 end
 

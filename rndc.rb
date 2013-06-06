@@ -2,41 +2,62 @@
 require './tcbuilder.rb'
 require 'optparse'
 
-def print_man()
+def man_hash()
   cmdman = {}
   cmdman['-n'] = "\tdry run, just check script for syntax"
-  cmdman['-f <filename>'] = "script file"
+  cmdman['-t'] = "\tprint time stamps in tracing lines"
+  cmdman['-f'] = " <script file> "
   cmdman['-h'] = "\tthis manual"
   cmdman['-hh'] = "\tthis manual and script function list"
   cmdman['-hhh'] = "\tthis manual and script function list with descriptions"
+  return cmdman
+end
 
+def print_man()
   puts "command line options:"
+  cmdman = man_hash
   cmdman.each_pair do |key, value|
     puts "#{key}\t#{value}"
   end
 end
 
-if ARGV.include? '-h' or ARGV.empty?
-  print_man
-  exit
-elsif ARGV.include? '-hh'
-  print_man
-  puts "\nTCBuilder alloved actions:"
-  $n.each do |node|
-    puts "= #{node.opname}"
+def parse_args
+  cmdman = man_hash
+  args = ''
+  ARGV.each do |arg|
+    if arg[0] == '-' 
+      args << arg[1..-1]
+    end
   end
-  exit
-elsif ARGV.include? '-hhh'
+  return args
+end
+
+#####################################
+#       E N T R Y   P O I N T
+#####################################
+puts "\nsee https://github.com/moskk/rndc for more information and newest versions\n\n"
+args = parse_args
+if args['hhh']
   print_man
-  puts "\nTCBuilder alloved actions:"
+  puts "\ntool chain builder alloved actions:"
   $n.each do |node|
     puts "= #{node.opname} - #{node.descr}"
   end
   exit
+elsif args['hh']
+  print_man
+  puts "\ntool chain builder alloved actions:"
+  $n.each_value do |node|
+    puts "= #{node.opname}"
+  end
+  exit
+elsif args['h'] or args.empty?
+  print_man
+  exit
 end
 
 run = true
-if ARGV.include? '-n'
+if args['n']
   run = false
 end
 
@@ -54,14 +75,16 @@ end
 tcb = TCBuilder.new file, run
 puts tcb.log
 
-module Kernel
-  def puts (*params)
-    print Time.now.to_s.split(' ')[1], ' '
-    params.each do |param| print param end
-    print "\n"
+if args['-t']
+  module Kernel
+    def puts (*params)
+      print Time.now.to_s.split(' ')[1], ' '
+      params.each do |param| print param end
+      print "\n"
+    end
   end
 end
- 
+
 tcb.join
 
 

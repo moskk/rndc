@@ -11,36 +11,38 @@
 
 
 #> 2. ok. now lets check it for HTTP server running (port 80)
-#>    it is rather lingering procedure, so lets do this with 100 threads
-f_80(oport|[80]|[100])?t_getpage
+#>    it is rather lingering procedure, so lets do this with 150 threads
+f_80(oport|[80]|[150])?f_rdns
 
 
-#> 3. if it is running then we asking for any page...
-t_getpage(getpage[5])?f_cond
+#> 3. now lets look at its domain name. 
+#>    it should be like some.domain.com or shorter
+f_rdns(rdnsf[5]|{:levels=>'<4'}|)?t_getpage
 
 
-#> 4. we want big text. BIG TEXT. more than 50 letters
+#> 4. if it has some name then we asking for page...
+t_getpage(getpage[5])?f_rcode
+
+
+#> 5. ...we just interested in 'successfull' pages (responce codes 200-206)
+f_rcode(respcf|[200,201,202,203,204,205,206]|)?f_cond
+
+
+#> 6. we want big text. BIG TEXT. more than 50 letters
 f_cond(condf|'.text.length>50'|[3])?f_title
 
 
-#> 5. throw pages with most uninteresting titles...
+#> 7. ignore pages with the most uninteresting titles...
 f_title(titlef|'./denied.titles'|[5])?f_ctext
 
 
-#> 6. ...and with some dull words...
-f_ctext(textf|'./denied.words'|[5])?f_rcode
+#> 8. ...and with some dull words...
+f_ctext(textf|'./denied.words'|[5])?f_oopera
 
 
-#> 7. ...we just interested in 'successfull' pages (responce codes 200-206)
-f_rcode(respcf|[200,201,202,203,204,205,206]|)?f_rdns
-
-
-#> 8. wow, not bad. now lets look at its domain name. 
-#>    it should be like some.domain.com or shorter
-f_rdns(rdnsf[5]|{:levels=>'<4'}|)?f_oopera
-
-
-##> 9. well... now we can look on it with our own eyes
+##> 9a. well... now we can look on it with our own eyes
 #f_oopera(oopera)
 
+
+#> 9b. nah... i'm so tired. i'll watch it tomorrow
 f_oopera(saveip|'~/reslist'|)
