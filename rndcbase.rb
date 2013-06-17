@@ -159,7 +159,7 @@ end
 def mk_rnd_ip()
   while true
     first = rndbyte
-    if (first != 10) and (first != 127)
+    if (first != 10)# and (first != 127)
       return first.to_s + '.' + rndbyte.to_s + '.' + rndbyte.to_s + '.' + rndbyte.to_s
     end
   end
