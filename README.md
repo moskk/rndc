@@ -11,6 +11,7 @@ try to search some caravans, lol.
 **rndc** depends of following gems:
   * nokogiri
   * net-ping
+  * mail
 
 ## USAGE
 ### Basic
@@ -72,3 +73,7 @@ look at file *discover.script*, it is an example script.
 - [ ] extending of filter functionality (reverse DNS and others)
 - [x] use domain names in HTTP-requests (it is necessary sometimes)
 - [x] merging command line keys (like netstat -nat)
+- [ ] passing multiple parameters to node
+- [ ] mail delivery engine
+
+
