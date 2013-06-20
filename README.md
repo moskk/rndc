@@ -74,6 +74,6 @@ look at file *discover.script*, it is an example script.
 - [x] use domain names in HTTP-requests (it is necessary sometimes)
 - [x] merging command line keys (like netstat -nat)
 - [ ] passing multiple parameters to node
-- [ ] mail delivery engine
-
+- [_] mail delivery engine
+- [ ] branching filters
 
