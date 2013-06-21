@@ -1,0 +1,5 @@
+(ds)?gp
+gp(oicew)
+#gp(getpage)?rcf
+#rcf(respcf|[200]|)?prnt
+#prnt(printip|'lkjsdlkjlkjsdf '|)
