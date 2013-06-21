@@ -6,6 +6,16 @@ $example_addr = '77.88.21.3'
 
 require 'ostruct'
 class Job < OpenStruct
+  def url
+    res = '---'
+    if not domain.nil?
+      res = domain[0]
+    else
+      res = ip
+    end
+    #print self, ' url = ', res
+    return res
+  end
 end
 
 require 'thread'
@@ -187,9 +197,10 @@ class HostsUpSrc < Source
       end
     end
 =begin
-    sleep 5
+    sleep 2
     job = Job.new
     job.ip = $example_addr
+    puts job.ip
     return job
 =end
   end
@@ -210,7 +221,7 @@ class PrintFlt < Filter
   end
   
   def do_job(job)
-    puts "#{@msg}#{job.ip}"
+    puts "#{@msg}#{job.url}"
     return true
   end
 
@@ -219,7 +230,7 @@ class PrintFlt < Filter
   end
   
   def self.descr()
-    "just prints job IP and pass the job. parameter - message string printed before IP"
+    "just prints job URL and pass the job. parameter - message string printed before IP"
   end
 end
 
@@ -280,11 +291,12 @@ require 'net/http'
 def grab_page(url)
   html = nil
   begin
-    uri = URI(url)
+    uri = URI("http://#{url}/")
     res = Net::HTTP.get_response(uri)
     #return nil if not res.response_body_permitted?
     html = res.body
-  rescue
+  rescue Exception => e
+    puts "exc: #{e.message}"
     return nil
   end
   doc = Nokogiri::HTML(html)
@@ -298,6 +310,7 @@ def grab_page(url)
   rescue Exception => e
     puts "grab_page: some shit happened: #{e.message}"
   end
+  #puts  [text, html, res.code.to_i, title]
   return text, html, res.code.to_i, title
 end
 
@@ -321,7 +334,7 @@ class PageGraber < Transformer
           pass subjob
         end
       elsif not job.ip.empty?
-        job.delete_field 'domain'
+        job.delete_field 'domain' if not job.domain.nil?
         job = do_job job
         next if not job
         pass job
@@ -332,13 +345,18 @@ class PageGraber < Transformer
   def do_job(job)
     text, html, code, title, succ = nil
     begin
+      #puts "#{job.url}: page grabing startsed" if not succ
       succ = Timeout::timeout(5) {
-        text, html, code, title = grab_page job
+        text, html, code, title = grab_page job.url
       }
     rescue Timeout::Error
+      puts "#{job.url}: page grabing timed out"
+      return nil
     end
-    puts "#{job.ip}: page grabing timed out" if not succ
-    return nil if code.nil? or not succ
+    if succ.nil?
+      puts "#{job.url}: page grabing failed"
+      return nil
+    end
     #puts ">>>>>>> grabbed page from >#{job}<, title >#{title}<, resp_code #{code}"
     #puts "#{text}\n\n\n"
     #puts "#{html}\n\n\n"
@@ -357,7 +375,7 @@ class PageGraber < Transformer
   end
 end
 
-# IP => *open in opera* => IP
+# IP => *open url in opera* => IP
 class OperaOpener < Filter
   def do_job(job)
     url = job.domain.nil?? job.ip : job.domain[0]
@@ -371,6 +389,23 @@ class OperaOpener < Filter
   end
   def self.descr()
     "just sends IP to Opera web browser and pass the job"
+  end
+end
+
+# IP => *open url in iceweasel* => IP
+class IceweaselOpener < Filter
+  def do_job(job)
+    url = job.domain.nil?? job.ip : job.domain[0]
+    system "iceweasel -new-tab #{url} &"
+    #puts "text len: #{job.text.length} code len: #{job.html.length}"
+    return true
+  end
+
+  def self.opname()
+    'oicew'
+  end
+  def self.descr()
+    "just sends IP to Iceweasel web browser and pass the job"
   end
 end
 
@@ -402,7 +437,7 @@ class TextFilter < Filter
     begin    
       @dlines.each do |dline|
         if job.text.index dline
-          puts "#{job.ip} matched: text contains #{dline}"
+          puts "#{job.url} matched: text contains #{dline}"
           return false
         end
       end
@@ -433,7 +468,7 @@ class PageCodeTextFilter < Filter
       code = shrink_text job.html
       @dlines.each do |dline|
 	if code.index dline
-	  puts "#{job.ip} matched: page code contains #{dline}"
+	  puts "#{job.url} matched: page code contains #{dline}"
 	  return false
 	end
       end
@@ -539,9 +574,11 @@ end
 require 'resolv'
 class ReverseDnsFlt < Filter
   def initialize(cust_list, mode, param)
-    @levels = param[:levels]
-    @allowed = file_lines param[:allowed]
-    @denied = file_lines param[:denied]
+    if not param.nil?
+      @levels = param[:levels]
+      @allowed = file_lines param[:allowed]
+      @denied = file_lines param[:denied]
+    end
     super cust_list, mode
   end
   
@@ -552,7 +589,7 @@ class ReverseDnsFlt < Filter
     rescue
       return false
     end
-
+    
     return false if names.empty?
     
     job.domain = names
@@ -596,6 +633,113 @@ class ReverseDnsFlt < Filter
   end
   def self.descr()
     "gathers a job's domain names by IP, suppress unnamed jobs"
+  end
+end
+
+class Delayer < Transformer
+  def initialize(cust_list, mode, delay)
+  @delay = delay
+  #puts "DELAY _ _ _ _ _ _ #{delay}"
+  @urllist = []
+  super cust_list, mode
+  @result = nil
+  @timer = Thread.new {
+    while true
+      print '.'
+      sleep @delay
+      if not @urllist.empty?
+        #p @urllist
+        if @result.nil?
+          @result = Job.new
+          @result.log = ''
+        end
+        1.upto @urllist.length do
+          @result.log << @urllist.shift << "\n"
+        end
+        #puts "ACCUM #{@result.log}"
+      end
+    end
+  }
+  end
+  
+  def do_job(job)
+    p 'Delayer ', job
+    @urllist << job.url if not job.url.nil?
+    #puts "got job, urllist now is #{@urllist}"
+    if not @result.nil?
+      res = @result.clone
+      @result = nil
+      @urllist = []
+      return res
+    end
+    return nil
+  end
+  
+  def self.opname()
+    'accumf'
+  end
+  
+  def self.descr()
+    "accumulate job's urls as string list and delay it for specified period"
+  end
+end
+
+class DebugSource < Source
+  def spawn
+    sleep 3
+    job = Job.new
+    job.ip = '66.49.130.149'
+    #p job
+    return job
+  end
+  
+  def self.opname()
+    'ds'
+  end
+  
+  def self.descr()
+    "debug source. once a second generates a job with some special ip"
+  end
+end
+
+require 'mail'
+require 'date'
+def send_mail addr_from, addr_to, message
+  puts "send mail #{addr_from} #{addr_to} #{message} "
+  Mail.deliver do
+     from     addr_from
+     to       addr_to
+     subject  "#{DateTime.now.to_date.to_s} pizza delivery!"
+     body     message
+     #add_file '/full/path/to/somefile.png'
+  end
+end
+
+# takes job's text field and send it to email list
+class MailerFlt < Filter
+  def initialize(cust_list, mode, email_list_file)
+    #puts "->>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #{email_list_file}"
+    super cust_list, mode
+    @emails_file = email_list_file
+  end
+  
+  def do_job(job)
+    emails = file_lines @emails_file
+    if not job.log.nil?
+      emails.each do |email|
+        if not email.nil? and send_mail('rndc mail bot <rndcmailbot@yandex.ru>', email, job.log)
+          puts "email sent to #{email}: " 
+        end
+      end
+    end
+  end
+  
+  def self.opname()
+    'mailf'
+  end
+  
+  def self.descr()
+    "send email with job's text field as message. parameter - file-list of email addresses"
   end
 end
 

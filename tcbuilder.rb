@@ -140,7 +140,9 @@ end
 # tool chain builder
 $n = [HostsUpSrc, PrintFlt, OperaOpener, PortCheckFlt, TextFilter, 
     PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, 
-    ConditionalFlt, PageGraber, ReverseDnsFlt]
+    ConditionalFlt, PageGraber, ReverseDnsFlt, Delayer, DebugSource, 
+    MailerFlt, IceweaselOpener]
+
 class TCBuilder
 
   @nodemap = {}

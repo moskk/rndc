@@ -12,43 +12,26 @@
 
 #> 2. ok. now lets check it for HTTP server running (port 80)
 #>    it is rather lingering procedure, so lets do this with 150 threads
-f_80(oport|[80,554]|[150])?trace_maybe
+f_80(oport|[80,554]|[150])?gpage
 
 
-##> 3. now lets look at its domain name. 
-##>    it should be like some.domain.com or shorter
-#f_rdns(rdnsf[5]|{:levels=>'<4'}|)?t_getpage
+#> 3. download device's page
+gpage(getpage[100])?f_retcode
 
+#> 4. us it succ?
+f_retcode(respcf|[200,201,202,203,204,205,206]|)?f_log
 
-##> 4. if it has some name then we asking for page...
-#t_getpage(getpage[5])?f_rcode
-
-
-##> 5. ...we just interested in 'successfull' pages (responce codes 200-206)
-#f_rcode(respcf|[200,201,202,203,204,205,206]|)?f_title
-
-
-##> 6. we want big text. BIG TEXT. more than 50 letters
-#f_cond(condf|'.text.length>50'|[3])?f_title
-
-
-##> 7. ignore pages with the most uninteresting titles...
-#f_title(titlef|'./denied.titles'|[5])?f_ctext
-
-
-##> 8. ...and with some dull words...
-#f_ctext(textf|'./denied.words'|[5])>f_log
-
-
-#> 9a. well... now we can look on it with our own eyes
-f_oopera(oopera)?f_log
 
 #> 9b. nah... i'm so tired. i'll watch it tomorrow
-f_log(saveip|'~/reslist'|)?trace
+f_log(saveip|'~/reslist'|)?f_trace
 
-#> 3. logging of port-matched machines
-trace_maybe(printip|'maybe: '|)?f_oopera
 
 #> 10. logging of plausible results
-trace(printip|'------>'|)
+f_trace(printip|'------>'|)?delay
+
+#> 11. wait a delay
+delay(accumf|3*3600|)?mail
+
+#> 12. send result log to email
+mail(mailf|'/home/moskk/rndc/email.list'|[5])
 

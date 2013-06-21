@@ -47,7 +47,7 @@ if args['hhh']
 elsif args['hh']
   print_man
   puts "\ntool chain builder alloved actions:"
-  $n.each_value do |node|
+  $n.each do |node|
     puts "= #{node.opname}"
   end
   exit
