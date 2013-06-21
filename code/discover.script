@@ -18,7 +18,8 @@ f_80(oport|[80,554]|[150])?gpage
 #> 3. download device's page
 gpage(getpage[100])?f_retcode
 
-#> 4. us it succ?
+
+#> 4. us it successfull?
 f_retcode(respcf|[200,201,202,203,204,205,206]|)?f_log
 
 
@@ -27,10 +28,16 @@ f_log(saveip|'~/reslist'|)?f_trace
 
 
 #> 10. logging of plausible results
-f_trace(printip|'------>'|)?delay
+f_trace(printip|'------>'|)>delay,icew
+
+
+#> 10.5 open url in iceweasel
+icew(oicew)
+
 
 #> 11. wait a delay
 delay(accumf|3*3600|)?mail
+
 
 #> 12. send result log to email
 mail(mailf|'/home/moskk/rndc/email.list'|[5])

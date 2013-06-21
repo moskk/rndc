@@ -11,7 +11,7 @@ try to search some caravans, lol.
 **rndc** depends of following gems:
   * nokogiri
   * net-ping
-  * mail
+  * [mail](https://github.com/mikel/mail)
 
 ## USAGE
 ### Basic
@@ -63,7 +63,7 @@ receiver list may be ommited, and then jobs will be suppressed after processing.
 script lines that begins from **#** are comments.
 
 if script line begins with **#>** then its trail will be printed on script parsing. 
-it is rather useless, i know :)
+this feature is allows you to describe script logics in code and print its summary on launching.
 
 look at file *discover.script*, it is an example script.
 
@@ -76,4 +76,4 @@ look at file *discover.script*, it is an example script.
 - [ ] passing multiple parameters to node
 - [_] mail delivery engine
 - [ ] branching filters
-- [ ] command aliases (short or more understandable)
+- [ ] command aliases (short names or more understandable, for user's choise)
