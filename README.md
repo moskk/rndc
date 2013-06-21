@@ -76,4 +76,4 @@ look at file *discover.script*, it is an example script.
 - [ ] passing multiple parameters to node
 - [_] mail delivery engine
 - [ ] branching filters
-
+- [ ] command aliases (short or more understandable)
