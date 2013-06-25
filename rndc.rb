@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require './tcbuilder.rb'
+require './engine/tcbuilder.rb'
 require 'optparse'
 
 def man_hash()

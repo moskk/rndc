@@ -1,4 +1,4 @@
-require './rndcbase.rb'
+require './engine/rndcbase.rb'
 
 def between(str, l, r)
   il = str.index l
@@ -244,7 +244,9 @@ class TCBuilder
   def start_script()
     # creating node actors
     @nodes_descr.each_pair do |tag, node|
-      param = eval node.param
+      #param = eval node.param
+      param = eval "[#{node.param}]"
+      #p param
       @nodes[tag] ||= []
       1.upto node.count do
         newnode = @nodemap[node.nodetype].new([], (node.passtype == :toall), param)

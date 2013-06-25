@@ -24,15 +24,15 @@ f_retcode(respcf|[200,201,202,203,204,205,206]|)?f_log
 
 
 #> 9b. nah... i'm so tired. i'll watch it tomorrow
-f_log(saveip|'~/reslist'|)?f_trace
+f_log(saveip|'./loot/reslist'|)?f_trace
 
 
 #> 10. logging of plausible results
-f_trace(printip|'------>'|)>delay,icew
+f_trace(printip|'------>'|)>delay
 
 
-#> 10.5 open url in iceweasel
-icew(oicew)
+##> 10.5 open url in iceweasel
+#icew(oicew)
 
 
 #> 11. wait a delay
@@ -40,5 +40,5 @@ delay(accumf|3*3600|)?mail
 
 
 #> 12. send result log to email
-mail(mailf|'/home/moskk/rndc/email.list'|[5])
+mail(mailf|'./data/email.list', 'rndc mail bot <rndcmailbot@yandex.ru>'|[5])
 

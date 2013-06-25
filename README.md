@@ -71,9 +71,11 @@ look at file *discover.script*, it is an example script.
 - [x] some convinient command line interface
 - [x] built-in documentation by script functions
 - [ ] extending of filter functionality (reverse DNS and others)
-- [x] use domain names in HTTP-requests (it is necessary sometimes)
+- [x] use domain names in HTTP-requests (it imay be usefull sometimes)
 - [x] merging command line keys (like netstat -nat)
-- [ ] passing multiple parameters to node
-- [_] mail delivery engine
+- [x] passing multiple parameters to nodes
+- [x] mail delivery engine
 - [ ] branching filters
 - [ ] command aliases (short names or more understandable, for user's choise)
+- [ ] actualize description
+- [ ] passing jobs to next node without exact node name specification

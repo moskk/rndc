@@ -29,7 +29,7 @@ class Node
   @mode = true
   @thread = nil
   @invert = false
-  def initialize(cust_list, mode, param = nil)
+  def initialize(cust_list, mode, params = nil)
     @jobs = Queue.new
     @cust_list = cust_list
     @mode = mode
@@ -215,8 +215,8 @@ class HostsUpSrc < Source
 end
 
 class PrintFlt < Filter
-  def initialize(cust_list, mode, text)
-    @msg = text
+  def initialize(cust_list, mode, params)
+    @msg = params[0]
     super cust_list, mode
   end
   
@@ -253,8 +253,8 @@ end
 
 class PortCheckFlt < Filter
   @port_list = []
-  def initialize(cust_list, mode, port_list)
-    @port_list = port_list
+  def initialize(cust_list, mode, params)
+    @port_list = params[0]
     super cust_list, mode
   end
   
@@ -427,8 +427,8 @@ end
 
 # PageInfo => *page text filtering* => PageInfo
 class TextFilter < Filter
-  def initialize(cust_list, mode, file)
-    @dlines = file_lines file
+  def initialize(cust_list, mode, params)
+    @dlines = file_lines params[0]
     super cust_list, mode
   end
   
@@ -456,8 +456,8 @@ end
 
 # PageInfo => *page code text filtering* => PageInfo
 class PageCodeTextFilter < Filter
-  def initialize(cust_list, mode, file)
-    @dlines = file_lines file
+  def initialize(cust_list, mode, params)
+    @dlines = file_lines params[0]
     super cust_list, mode
   end
   
@@ -487,8 +487,8 @@ end
 
 # PageInfo => *allowed HTTP response code* => PageInfo
 class RespCodeFlt < Filter
-  def initialize(cust_list, mode, allowed_codes)
-    @codes = allowed_codes
+  def initialize(cust_list, mode, params)
+    @codes = params[0]
     super cust_list, mode
   end
   
@@ -506,8 +506,8 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class PageTitleFlt < Filter
-  def initialize(cust_list, mode, titles_file)
-    @titles = file_lines titles_file
+  def initialize(cust_list, mode, params)
+    @titles = file_lines params[0]
     super cust_list, mode
   end
   
@@ -530,8 +530,8 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class IpFileSaverFlt < Filter
-  def initialize(cust_list, mode, file)
-    @file = file
+  def initialize(cust_list, mode, params)
+    @file = params[0]
     super cust_list, mode
   end
   
@@ -551,8 +551,8 @@ end
 
 # PageInfo => *check job for condition* => PageInfo
 class ConditionalFlt < Filter
-  def initialize(cust_list, mode, cond)
-    @cond = "job#{cond}"
+  def initialize(cust_list, mode, params)
+    @cond = "job#{params[0]}"
     super cust_list, mode
   end
   
@@ -573,8 +573,8 @@ end
 # PageInfo => *check job for domain name* => PageInfo
 require 'resolv'
 class ReverseDnsFlt < Filter
-  def initialize(cust_list, mode, param)
-    if not param.nil?
+  def initialize(cust_list, mode, params)
+    if not params[0].nil?
       @levels = param[:levels]
       @allowed = file_lines param[:allowed]
       @denied = file_lines param[:denied]
@@ -637,8 +637,8 @@ class ReverseDnsFlt < Filter
 end
 
 class Delayer < Transformer
-  def initialize(cust_list, mode, delay)
-  @delay = delay
+  def initialize(cust_list, mode, params)
+  @delay = params[0]
   #puts "DELAY _ _ _ _ _ _ #{delay}"
   @urllist = []
   super cust_list, mode
@@ -663,7 +663,6 @@ class Delayer < Transformer
   end
   
   def do_job(job)
-    p 'Delayer ', job
     @urllist << job.url if not job.url.nil?
     #puts "got job, urllist now is #{@urllist}"
     if not @result.nil?
@@ -704,31 +703,38 @@ end
 
 require 'mail'
 require 'date'
-def send_mail addr_from, addr_to, message
+def send_mail(addr_from, addr_to, topic, message)
   puts "send mail #{addr_from} #{addr_to} #{message} "
   Mail.deliver do
-     from     addr_from
-     to       addr_to
-     subject  "#{DateTime.now.to_date.to_s} pizza delivery!"
-     body     message
-     #add_file '/full/path/to/somefile.png'
+    from     addr_from
+    to       addr_to
+    #subject  "#{DateTime.now.to_date.to_s} pizza delivery!"
+    subject  "#{topic}"
+    body     message
+    #add_file '/full/path/to/somefile.png'
   end
 end
 
 # takes job's text field and send it to email list
 class MailerFlt < Filter
-  def initialize(cust_list, mode, email_list_file)
+  def initialize(cust_list, mode, params)
+    # params: [tolist, from, topic]
     #puts "->>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #{email_list_file}"
+    @emails_file = params[0]
+    @from = params[1]
+    @topic = params.fetch(2, self)
     super cust_list, mode
-    @emails_file = email_list_file
   end
   
   def do_job(job)
     emails = file_lines @emails_file
+    p emails
     if not job.log.nil?
       emails.each do |email|
-        if not email.nil? and send_mail('rndc mail bot <rndcmailbot@yandex.ru>', email, job.log)
-          puts "email sent to #{email}: " 
+        #if not email.nil? and send_mail('rndc mail bot <rndcmailbot@yandex.ru>', email, job.log)
+        p [@from, email, @topic, job.log]
+        if not email.nil? and send_mail(@from, email, @topic, job.log)
+          #puts "email sent to #{email}: " 
         end
       end
     end
