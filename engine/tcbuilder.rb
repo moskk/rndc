@@ -18,6 +18,32 @@ def pass_dict()
   return passh
 end
 
+# squize empty spaces in code lines except ones in string values
+def code_squize(str)
+  s1 = str.split ''
+  s2 = ''
+  sqflag, dqflag, spaceflag = false, false, false
+  s1.each do |c|
+    case c
+    when ' ', "\t"
+      if not spaceflag
+        spaceflag = true
+      elsif not (sqflag or dqflag)
+        next
+      end
+    when "\'"
+      sqflag = (not sqflag) if not dqflag
+    when "\""
+      dqflag = (not dqflag) if not sqflag
+    else
+      spaceflag = false
+    end
+    
+    s2 << c
+  end
+  return s2
+end
+
 class NodeDescription
   attr_reader :source
   attr_accessor :tag
@@ -30,7 +56,7 @@ class NodeDescription
   attr_reader :valid
   attr_reader :error
 
-  def parse(descr)
+  def parse(descr, print = false)
     @source = descr.clone
 
     if descr[0] == '#'
@@ -44,9 +70,12 @@ class NodeDescription
 
     # string preparation
     descr.chomp!
+=begin
     descr.gsub! ' ',''
     descr.gsub! "\t",''
-    #puts ">> #{descr}"
+=end
+    descr = code_squize descr
+    puts " >> #{descr}" if print 
 
    # tag
     ilpar = descr.index '('
@@ -121,7 +150,7 @@ class NodeDescription
     return true
   end
 
-  def initialize(descr)
+  def initialize(descr, print)
     @source = ''             # source script line
     @tag = ''                # reference name for this node
     @nodetype = ''           # performed operation
@@ -133,7 +162,7 @@ class NodeDescription
     @valid = false
     @error = ''
 
-    parse(descr)
+    parse(descr, print)
   end
 end
 
@@ -143,6 +172,7 @@ $n = [HostsUpSrc, PrintFlt, OperaOpener, PortCheckFlt, TextFilter,
     ConditionalFlt, PageGraber, ReverseDnsFlt, Delayer, DebugSource, 
     MailerFlt, IceweaselOpener]
 
+# script executing engine
 class TCBuilder
 
   @nodemap = {}
@@ -154,13 +184,14 @@ class TCBuilder
   attr_reader :valid
   attr_reader :log
 
-  def initialize(script_file, run = true)
+  def initialize(script_file, run = true, print_code = false)
     @nodemap = {}
     @nodes_descr = {}
     @nodes = {}
     @valid = false
     @log = []
     @threads = []
+    @print_code = print_code
 
     $n.each do |node|
       @nodemap[node.opname] = node
@@ -196,7 +227,7 @@ class TCBuilder
     #puts script
     def_tag = 'unnamed_node:aaaa'
     script.each do |line|
-      node = NodeDescription.new line
+      node = NodeDescription.new line, @print_code
       if not node.valid
         err = "syntax error in line \"#{line}\": #{node.error}"
         @log << err

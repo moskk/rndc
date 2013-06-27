@@ -1,12 +1,19 @@
 #!/usr/bin/env ruby
 require './engine/tcbuilder.rb'
+
+=begin
+puts code_squize("1 1  1   1    't\t2  2  \"1 3   3   1 1 \"3   4    1 6       3   t\t4    5     '1    \"3   '||2  3   5     t\t0'\"")
+exit
+=end
+
 require 'optparse'
 
 def man_hash()
   cmdman = {}
+  cmdman['-f'] = " <script file> specifying script file"
   cmdman['-n'] = "\tdry run, just check script for syntax"
   cmdman['-t'] = "\tprint time stamps in tracing lines"
-  cmdman['-f'] = " <script file> "
+  cmdman['-c'] = "\tprint squized script code"
   cmdman['-h'] = "\tthis manual"
   cmdman['-hh'] = "\tthis manual and script function list"
   cmdman['-hhh'] = "\tthis manual and script function list with descriptions"
@@ -37,6 +44,7 @@ end
 #####################################
 puts "\nsee https://github.com/moskk/rndc for more information and newest versions\n\n"
 args = parse_args
+p args
 if args['hhh']
   print_man
   puts "\ntool chain builder alloved actions:"
@@ -61,6 +69,11 @@ if args['n']
   run = false
 end
 
+print_code = false
+if args['c']
+  print_code = true
+end
+
 fi = ARGV.index '-f'
 file = ''
 if fi.nil? or ARGV[fi+1].nil?
@@ -72,7 +85,7 @@ else
   file = ARGV[fi+1]
 end
 
-tcb = TCBuilder.new file, run
+tcb = TCBuilder.new file, run, print_code
 puts tcb.log
 
 if args['-t']

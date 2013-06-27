@@ -79,3 +79,4 @@ look at file *discover.script*, it is an example script.
 - [ ] command aliases (short names or more understandable, for user's choise)
 - [ ] actualize description
 - [ ] passing jobs to next node without exact node name specification
+- [ ] triggers (sending to engine user defined commands  by network)

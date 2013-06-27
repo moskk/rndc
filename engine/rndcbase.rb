@@ -734,7 +734,9 @@ class MailerFlt < Filter
         #if not email.nil? and send_mail('rndc mail bot <rndcmailbot@yandex.ru>', email, job.log)
         p [@from, email, @topic, job.log]
         if not email.nil? and send_mail(@from, email, @topic, job.log)
-          #puts "email sent to #{email}: " 
+          puts "email sent to #{email}: " 
+        else
+          puts "faillll" 
         end
       end
     end

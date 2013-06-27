@@ -40,5 +40,5 @@ delay(accumf|3*3600|)?mail
 
 
 #> 12. send result log to email
-mail(mailf|'./data/email.list', 'rndc mail bot <rndcmailbot@yandex.ru>'|[5])
+mail(mailf|'./data/email.list', 'rndc mail bot <rndcmailbot@yandex.ru>', "#{DateTime.now.to_date.to_s} pizza delivery!"|[5])
 
