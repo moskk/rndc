@@ -23,15 +23,18 @@ class Node
   attr_accessor :invert
   attr_reader :thread
   attr_reader :cust_list
+  attr_reader :ncust_list
   @jobs = nil
   @cust_list = []
+  @ncust_list = []
   # mode: true - result sent to all customers, false - result sent to any customer
   @mode = true
   @thread = nil
   @invert = false
-  def initialize(cust_list, mode, params = nil)
+  def initialize(cust_list, ncust_list, mode, params = nil)
     @jobs = Queue.new
     @cust_list = cust_list
+    @ncust_list = ncust_list
     @mode = mode
     @invert = false
   end
@@ -52,19 +55,17 @@ class Node
   end
   
   # passing the successfully processed job to customer(s)
-  def pass(job)
+  def pass(job, succ)
+    recv_list = succ ? @cust_list : @ncust_list
     if(@mode)
-      @cust_list.each{|cust|cust.enq job}
+      recv_list.each{|cust|cust.enq job}
     else
-      l = @cust_list.length
-      #puts "recv_list len: #{l}"
+      l = recv_list.length
       return if l == 0
       # we must look for ready consumer until success
       while true
         to = rand l
-        #puts "job would sent to #{to}"
-        if(@cust_list[to].enq job)
-          #puts "#{self}: job #{job} sent to consumer #{@cust_list[to]}"
+        if(recv_list[to].enq job)
           return
         else
           #puts "WARNING: #{self}: consumer #{@cust_list[to]} is busy, looking for enother one..."
@@ -81,6 +82,10 @@ class Node
 
   def add_rcv(rlist)
     @cust_list += rlist
+  end
+
+  def add_nrcv(rlist)
+    @ncust_list += rlist
   end
 
   def start()
@@ -123,7 +128,7 @@ class Source < Node
     while true
       job = spawn
       next if not job
-      pass job
+      pass job, true
     end
   end
 end
@@ -137,11 +142,13 @@ class Filter < Node
       if @invert
         res = (not res)
       end 
-      pass job if res
+      #p res
+      pass job, res
     end
   end
   
   def do_job(job)
+    # stub
     return true if job
     return false
   end
@@ -153,7 +160,7 @@ class Transformer < Node
       job = @jobs.pop
       next if not job
       job = do_job job
-      pass job if job
+      pass(job, (not job.nil?))
     end
   end
   
@@ -215,9 +222,9 @@ class HostsUpSrc < Source
 end
 
 class PrintFlt < Filter
-  def initialize(cust_list, mode, params)
+  def initialize(cust_list, ncust_list, mode, params)
     @msg = params[0]
-    super cust_list, mode
+    super cust_list, ncust_list, mode
   end
   
   def do_job(job)
@@ -253,9 +260,9 @@ end
 
 class PortCheckFlt < Filter
   @port_list = []
-  def initialize(cust_list, mode, params)
+  def initialize(cust_list, ncust_list, mode, params)
     @port_list = params[0]
-    super cust_list, mode
+    super cust_list, ncust_list, mode
   end
   
   def do_job(job)
@@ -336,8 +343,8 @@ class PageGraber < Transformer
       elsif not job.ip.empty?
         job.delete_field 'domain' if not job.domain.nil?
         job = do_job job
-        next if not job
-        pass job
+        #next if not job
+        pass(job, (not job.nil?))
       end
     end
   end
@@ -346,7 +353,7 @@ class PageGraber < Transformer
     text, html, code, title, succ = nil
     begin
       #puts "#{job.url}: page grabing startsed" if not succ
-      succ = Timeout::timeout(5) {
+      succ = Timeout::timeout(15) {
         text, html, code, title = grab_page job.url
       }
     rescue Timeout::Error
@@ -427,9 +434,9 @@ end
 
 # PageInfo => *page text filtering* => PageInfo
 class TextFilter < Filter
-  def initialize(cust_list, mode, params)
+  def initialize(cust_list, ncust_list, mode, params)
     @dlines = file_lines params[0]
-    super cust_list, mode
+    super cust_list, ncust_list, mode
   end
   
   def do_job(job)
@@ -456,9 +463,9 @@ end
 
 # PageInfo => *page code text filtering* => PageInfo
 class PageCodeTextFilter < Filter
-  def initialize(cust_list, mode, params)
+  def initialize(cust_list, ncust_list, mode, params)
     @dlines = file_lines params[0]
-    super cust_list, mode
+    super cust_list, ncust_list, mode
   end
   
   def do_job(job)
@@ -487,9 +494,9 @@ end
 
 # PageInfo => *allowed HTTP response code* => PageInfo
 class RespCodeFlt < Filter
-  def initialize(cust_list, mode, params)
+  def initialize(cust_list, ncust_list, mode, params)
     @codes = params[0]
-    super cust_list, mode
+    super cust_list, ncust_list, mode
   end
   
   def do_job(job)
@@ -506,9 +513,9 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class PageTitleFlt < Filter
-  def initialize(cust_list, mode, params)
+  def initialize(cust_list, ncust_list, mode, params)
     @titles = file_lines params[0]
-    super cust_list, mode
+    super cust_list, ncust_list, mode
   end
   
   def do_job(job)
@@ -530,9 +537,9 @@ end
 
 # PageInfo => *allowed page title* => PageInfo
 class IpFileSaverFlt < Filter
-  def initialize(cust_list, mode, params)
+  def initialize(cust_list, ncust_list, mode, params)
     @file = params[0]
-    super cust_list, mode
+    super cust_list, ncust_list, mode
   end
   
   def do_job(job)
@@ -551,9 +558,9 @@ end
 
 # PageInfo => *check job for condition* => PageInfo
 class ConditionalFlt < Filter
-  def initialize(cust_list, mode, params)
+  def initialize(cust_list, ncust_list, mode, params)
     @cond = "job#{params[0]}"
-    super cust_list, mode
+    super cust_list, ncust_list, mode
   end
   
   def do_job(job)
@@ -573,13 +580,13 @@ end
 # PageInfo => *check job for domain name* => PageInfo
 require 'resolv'
 class ReverseDnsFlt < Filter
-  def initialize(cust_list, mode, params)
+  def initialize(cust_list, ncust_list, mode, params)
     if not params[0].nil?
       @levels = param[:levels]
       @allowed = file_lines param[:allowed]
       @denied = file_lines param[:denied]
     end
-    super cust_list, mode
+    super cust_list, ncust_list, mode
   end
   
   def do_job(job)
@@ -637,11 +644,11 @@ class ReverseDnsFlt < Filter
 end
 
 class Delayer < Transformer
-  def initialize(cust_list, mode, params)
+  def initialize(cust_list, ncust_list, mode, params)
   @delay = params[0]
   #puts "DELAY _ _ _ _ _ _ #{delay}"
   @urllist = []
-  super cust_list, mode
+  super cust_list, ncust_list, mode
   @result = nil
   @timer = Thread.new {
     while true
@@ -717,13 +724,13 @@ end
 
 # takes job's text field and send it to email list
 class MailerFlt < Filter
-  def initialize(cust_list, mode, params)
+  def initialize(cust_list, ncust_list, mode, params)
     # params: [tolist, from, topic]
     #puts "->>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #{email_list_file}"
     @emails_file = params[0]
     @from = params[1]
     @topic = params.fetch(2, self)
-    super cust_list, mode
+    super cust_list, ncust_list, mode
   end
   
   def do_job(job)

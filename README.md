@@ -32,7 +32,7 @@ TCBuilder (tool chain builder) script consists of node descriptions. in fact
 it is definition of directed graph that's every vertex (node) 
 performing some operation on jobs and have a list of nodes that will receive 
 (or not) this job after operation is done. this descriptions are looks like this:
-`tag (operation|parameter|[quantity]inverter) passtype receiver1,receiver2,...,receiverN`
+`tag (operation|parameter|[quantity]inverter) passtype receiver1,receiver2,...,receiverN : nreceiver1,nreceiver2,...,nreceiverM`
 
 *tag* is a name of node. it is used for node referencing from another nodes to 
 pass jobs for it. tag may be ommited in source descriptions or in case of nodes that 
@@ -50,7 +50,7 @@ this mean that job which will be normally passed by usual filter, will be suppre
 by inverted one. so behavior of the filter is reversed. filter also might be 
 marked by **+** sign (usual filter) just for clarity.
 
-successfully operated job would be passed to receivers using some *passtype*:
+successfully operated job would be passed to *receivers* using some *passtype*:
   * **>** result will be passed to every actor *that is not busy* in all receiving nodes.
   this type of passing is unreliable as far as it can cause loosing of job in case 
   when all receivers are busy.
@@ -58,7 +58,12 @@ successfully operated job would be passed to receivers using some *passtype*:
   to pass the job untill it find a free consumer, so this pass type is reliable.
 description concludes with a list of consumers. it consists of tags of some another 
 nodes (except sources, that cant receive jobs) separated by commas. *passtype* and 
-receiver list may be ommited, and then jobs will be suppressed after processing.
+receiver list may be ommited, and then jobs will be suppressed after processing. 
+also if receiver list contains a **:** then receivers specified after it will receive 
+an unsuccessfully operated job (something like *else* operator). in this case the 
+same passtype used.
+if you wish to pass the job to the next node, you may specify a **#** symbol instead 
+of exact node name. if your script is linear, you may not to entitle your nodes at all.
 
 script lines that begins from **#** are comments.
 
@@ -75,8 +80,8 @@ look at file *discover.script*, it is an example script.
 - [x] merging command line keys (like netstat -nat)
 - [x] passing multiple parameters to nodes
 - [x] mail delivery engine
-- [ ] branching filters
+- [x] branching filters
 - [ ] command aliases (short names or more understandable, for user's choise)
-- [ ] actualize description
-- [ ] passing jobs to next node without exact node name specification
+- [_] actualize description
+- [x] passing jobs to next node without exact node name specification
 - [ ] triggers (sending to engine user defined commands  by network)

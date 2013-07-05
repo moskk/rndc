@@ -6,29 +6,29 @@
 
 
 #> 1. so there we go. at first lets get some online host...
-#>    with 50 threads we have more chances
-(rndup[50])?f_80
+#>    with 100 threads we have more chances
+(rndup[100])?#
 
 
-#> 2. ok. now lets check it for HTTP server running (port 80)
-#>    it is rather lingering procedure, so lets do this with 150 threads
-f_80(oport|[80,554]|[150])?gpage
+#> 2. ok. now lets check it for HTTP server (port 80) running on RTSP IP-camera (port 554)
+#>    it is rather lingering procedure, so lets do this with 300 threads
+f_80(oport|[80,554]|[300])?#
 
 
 #> 3. download device's page
-gpage(getpage[100])?f_retcode
+gpage(getpage[200])?#
 
 
 #> 4. us it successfull?
-f_retcode(respcf|[200,201,202,203,204,205,206]|)?f_log
+f_retcode(respcf|[200,201,202,203,204,205,206]|[5])?#
 
 
 #> 9b. nah... i'm so tired. i'll watch it tomorrow
-f_log(saveip|'./loot/reslist'|)?f_trace
+f_log(saveip|'./loot/reslist'|[2])?#
 
 
 #> 10. logging of plausible results
-f_trace(printip|'------>'|)>delay
+f_trace(printip|'------>'|)>#
 
 
 ##> 10.5 open url in iceweasel
@@ -36,7 +36,7 @@ f_trace(printip|'------>'|)>delay
 
 
 #> 11. wait a delay
-delay(accumf|3*3600|)?mail
+delay(accumf|8*3600|)?#
 
 
 #> 12. send result log to email

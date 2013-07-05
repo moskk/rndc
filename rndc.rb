@@ -44,7 +44,7 @@ end
 #####################################
 puts "\nsee https://github.com/moskk/rndc for more information and newest versions\n\n"
 args = parse_args
-p args
+
 if args['hhh']
   print_man
   puts "\ntool chain builder alloved actions:"

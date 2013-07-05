@@ -47,12 +47,14 @@ end
 class NodeDescription
   attr_reader :source
   attr_accessor :tag
+  attr_accessor :order_num
   attr_reader :nodetype
   attr_reader :inverted
   attr_reader :param
   attr_reader :count
   attr_reader :passtype
   attr_reader :receivers
+  attr_reader :nreceivers
   attr_reader :valid
   attr_reader :error
 
@@ -104,13 +106,33 @@ class NodeDescription
     #receivers
     rclist = descr[irpar+2..-1]
     rclist ||= ''
-    @receivers = rclist.split ','
-    @receivers.delete ''
-    @receivers.each do |rec|
-      if rec =~ /\W/
-        @error = "invalid tag name #{rec}. allowed symbols: a-zA-Z0-9_"
-        return false
+    rc_clust = rclist.split ':'
+    rc_clust ||= []
+    #puts "rc_clust #{rc_clust.inspect}"
+    if rc_clust.empty?
+      #no receivers
+    elsif rc_clust.size <= 2
+      @receivers = rc_clust.fetch(0, '').split(',')
+      @receivers.delete ''
+      @nreceivers = rc_clust.fetch(1, '').split(',')
+      @nreceivers.delete ''
+      #puts " r#{@receivers}"
+      @receivers.each do |rec|
+        if rec =~ /\W/ and rec != "#"
+          @error = "invalid tag name #{rec}. allowed symbols: a-zA-Z0-9_ or '#'"
+          return false
+        end
       end
+      #puts "nr#{@nreceivers}"
+      @nreceivers.each do |rec|
+        if rec =~ /\W/ and rec != "#"
+          @error = "invalid tag name #{rec}. allowed symbols: a-zA-Z0-9_ or '#'"
+          return false
+        end
+      end
+    else
+      @error = "invalid receivers list \"#{rclist}\""
+      return false
     end
     #puts "receivers #{receivers}"
     while not ( oper.nil? or oper.empty?)
@@ -158,9 +180,11 @@ class NodeDescription
     @param = ''              # node operation parameter (if is)
     @count = 1               # count of actors in node
     @passtype = :nopas       # how to pass operation result (to all, to any, not pass)
-    @receivers = []          # list of nodes that receive operation result
+    @receivers = []          # list of nodes that receive successfull operation result
+    @nreceivers = []         # list of nodes that receive failed operation result
     @valid = false
     @error = ''
+    @order_num = -1
 
     parse(descr, print)
   end
@@ -177,6 +201,7 @@ class TCBuilder
 
   @nodemap = {}
   @nodes_descr = {}
+  @nodes_queue = {}
   @nodes = {}
   @valid = false
   @log = []
@@ -187,12 +212,12 @@ class TCBuilder
   def initialize(script_file, run = true, print_code = false)
     @nodemap = {}
     @nodes_descr = {}
+    @nodes_queue = {}
     @nodes = {}
     @valid = false
     @log = []
     @threads = []
     @print_code = print_code
-
     $n.each do |node|
       @nodemap[node.opname] = node
     end
@@ -246,10 +271,14 @@ class TCBuilder
           next
         end
         @nodes_descr[node.tag] = node
+        node.order_num = @nodes_queue.size
+        @nodes_queue[node.order_num] = node.tag
       end
     end
 
     return false if fail
+    
+    #p @nodes_queue
 
     # checking for valid node action names and tags
     @nodes_descr.each_value do |node|
@@ -258,8 +287,28 @@ class TCBuilder
         @log << err
         fail = true
       end
+      
+      node.receivers.each_index do |i|
+        if node.receivers[i] == '#'
+          node.receivers[i] = @nodes_queue.fetch(node.order_num+1, nil)
+        end
+      end
+      
+      node.nreceivers.each_index do |i|
+        if node.nreceivers[i] == '#'
+          node.nreceivers[i] = @nodes_queue.fetch(node.order_num+1, nil)
+        end
+      end
 
-      node.receivers.each do |totag|
+      node.receivers.delete nil
+      node.nreceivers.delete nil
+      
+      #puts "#{node.order_num}\t+#{node.receivers}-#{node.nreceivers}"
+
+      reflist = []
+      reflist.push *node.receivers
+      reflist.push *node.nreceivers
+      reflist.each do |totag|
         if not @nodes_descr.include? totag
           err = "no nodes tagged as \"#{totag}\" found in script, but one is referenced in line: \"#{node.source}\""
           @log << err
@@ -280,7 +329,7 @@ class TCBuilder
       #p param
       @nodes[tag] ||= []
       1.upto node.count do
-        newnode = @nodemap[node.nodetype].new([], (node.passtype == :toall), param)
+        newnode = @nodemap[node.nodetype].new([], [], (node.passtype == :toall), param)
         newnode.invert = node.inverted
         @nodes[tag] << newnode
       end
@@ -288,9 +337,15 @@ class TCBuilder
 
     # adding node receivers
     @nodes_descr.each_pair do |tag, node_descr|
+      #puts "---#{node_descr.receivers.inspect}-#{node_descr.nreceivers.inspect}"
       node_descr.receivers.each do |receiver|
         @nodes[tag].each do |node|
           node.add_rcv @nodes[receiver]
+        end
+      end
+      node_descr.nreceivers.each do |nreceiver|
+        @nodes[tag].each do |node|
+          node.add_nrcv @nodes[nreceiver]
         end
       end
     end
