@@ -59,6 +59,7 @@ successfully operated job would be passed to *receivers* using some *passtype*:
 description concludes with a list of consumers. it consists of tags of some another 
 nodes (except sources, that cant receive jobs) separated by commas. *passtype* and 
 receiver list may be ommited, and then jobs will be suppressed after processing. 
+
 also if receiver list contains a **:** then receivers specified after it will receive 
 an unsuccessfully operated job (something like *else* operator). in this case the 
 same passtype used.
