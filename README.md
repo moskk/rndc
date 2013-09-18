@@ -79,7 +79,7 @@ this feature is allows you to describe script logics in code and print its summa
 look at file *code/discover.script*, it is an example script.
 
 ## COMMAND LINE OPTIONS
--f	 <script file> specifying script file
+-f	 *script file* specifying script file
 -n		dry run, just check script for syntax
 -t		print time stamps in tracing lines
 -c		print squized script code
