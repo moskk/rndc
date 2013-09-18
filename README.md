@@ -80,19 +80,12 @@ look at file *code/discover.script*, it is an example script.
 
 ## COMMAND LINE OPTIONS
 **-f**	 *script file* specifying script file
-
 **-n**		dry run, just check script for syntax
-
 **-t**		print time stamps in tracing lines
-
-**-c		print squized script code**
-
+**-c**		print squized script code
 **-h**		**this manual**
-
 **-hh**		this manual and script function list
-
 **-hhh**		this manual and script function list with descriptions
-
 
 ## TODO LIST
 - [x] some convinient command line interface
