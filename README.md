@@ -79,7 +79,13 @@ this feature is allows you to describe script logics in code and print its summa
 look at file *code/discover.script*, it is an example script.
 
 ## COMMAND LINE OPTIONS
-**...coming soon...**
+-f	 <script file> specifying script file
+-n		dry run, just check script for syntax
+-t		print time stamps in tracing lines
+-c		print squized script code
+-h		**this manual**
+-hh		this manual and script function list
+-hhh		this manual and script function list with descriptions
 
 ## TODO LIST
 - [x] some convinient command line interface
@@ -91,7 +97,7 @@ look at file *code/discover.script*, it is an example script.
 - [x] mail delivery engine
 - [x] branching filters
 - [ ] command aliases (short names or more understandable, for user's choise)
-- [.] actualize description
+- [x] actualize description
 - [x] passing jobs to next node without exact node name specification
-- [ ] triggers (sending to engine user defined commands  by network)
+- [ ] triggers (sending user defined commands to engine by network)
 - [ ] job processing logging
