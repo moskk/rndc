@@ -1,5 +1,6 @@
-(ds)?gp
-gp(oicew)
-#gp(getpage)?rcf
-#rcf(respcf|[200]|)?prnt
-#prnt(printip|'lkjsdlkjlkjsdf '|)
+(rndup[1])?#
+#delay(accumf|5|)?mail
+#mail(mailf|'./data/email.list', 'rndc mail bot <rndcmailbot@yandex.ru>', "#{DateTime.now.to_date.to_s} pizza delivery!"|[5])
+port_f(oport|[80]|[5])?#:p2_f
+(printip|"80 opned: "|)
+p2_f(printip|"80 clsed: "|)?#

@@ -85,21 +85,27 @@ else
   file = ARGV[fi+1]
 end
 
-tcb = TCBuilder.new file, run, print_code
-puts tcb.log
+while true do
+  begin
+    tcb = TCBuilder.new file, run, print_code
+    puts tcb.log
 
-if args['-t']
-  module Kernel
-    def puts (*params)
-      print Time.now.to_s.split(' ')[1], ' '
-      params.each do |param| print param end
-      print "\n"
+    if args['-t']
+      module Kernel
+        def puts (*params)
+          print Time.now.to_s.split(' ')[1], ' '
+          params.each do |param| print param end
+          print "\n"
+        end
+      end
     end
+
+    tcb.join
+  rescue
+    tcb.stop_script
+    puts "CRITICAL ERROR, RESTART"
   end
 end
-
-tcb.join
-
 
 
 

@@ -7,12 +7,12 @@
 
 #> 1. so there we go. at first lets get some online host...
 #>    with 100 threads we have more chances
-(rndup[100])?#
+(rndup[150])?#
 
 
-#> 2. ok. now lets check it for HTTP server (port 80) running on RTSP IP-camera (port 554)
+#> 2. now lets check if it RTSP device(port 554)
 #>    it is rather lingering procedure, so lets do this with 300 threads
-f_80(oport|[80,554]|[300])?#
+f_554(oport|[80,554]|[300])?#
 
 
 #> 3. download device's page
@@ -35,10 +35,10 @@ f_trace(printip|'------>'|)>#
 #icew(oicew)
 
 
-#> 11. wait a delay
-delay(accumf|8*3600|)?#
+##> 11. wait a delay
+#delay(accumf|8*3600|)?#
 
 
-#> 12. send result log to email
-mail(mailf|'./data/email.list', 'rndc mail bot <rndcmailbot@yandex.ru>', "#{DateTime.now.to_date.to_s} pizza delivery!"|[5])
+##> 12. send result log to email
+#mail(mailf|'./data/email.list', 'rndc mail bot <rndcmailbot@yandex.ru>', "#{DateTime.now.to_date.to_s} pizza delivery!"|[5])
 

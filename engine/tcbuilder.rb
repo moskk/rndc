@@ -381,6 +381,7 @@ class TCBuilder
         node.stop
       end
     end
+    @nodes = {}
   end
   
   def join()
