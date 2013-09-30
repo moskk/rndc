@@ -58,7 +58,7 @@ class NodeDescription
   attr_reader :valid
   attr_reader :error
 
-  def parse(descr, print = false)
+  def parse(descr, bprint = false)
     @source = descr.clone
 
     if descr[0] == '#'
@@ -77,7 +77,7 @@ class NodeDescription
     descr.gsub! "\t",''
 =end
     descr = code_squize descr
-    puts " >> #{descr}" if print 
+    puts " >> #{descr}" if bprint 
 
    # tag
     ilpar = descr.index '('
@@ -172,7 +172,7 @@ class NodeDescription
     return true
   end
 
-  def initialize(descr, print)
+  def initialize(descr, bprint)
     @source = ''             # source script line
     @tag = ''                # reference name for this node
     @nodetype = ''           # performed operation
@@ -186,15 +186,29 @@ class NodeDescription
     @error = ''
     @order_num = -1
 
-    parse(descr, print)
+    parse(descr, bprint)
   end
 end
 
 # tool chain builder
-$n = [HostsUpSrc, PrintFlt, OperaOpener, PortCheckFlt, TextFilter, 
-    PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, 
-    ConditionalFlt, PageGraber, ReverseDnsFlt, Delayer, DebugSource, 
-    MailerFlt, IceweaselOpener]
+#$node_classes = [HostsUpSrc, RndHostsSrc, FileHostsSrc, PrintFlt, OperaOpener, PortCheckFlt, 
+#    TextFilter, PageCodeTextFilter, RespCodeFlt, PageTitleFlt, IpFileSaverFlt, 
+#    ConditionalFlt, PageGraber, ReverseDnsFlt, Delayer, DebugSource, 
+#    MailerFlt, IceweaselOpener]
+$node_classes = []
+def register_node_class(klass)
+  $node_classes << klass
+end
+
+require 'find'
+def load_node_classes()
+  Find.find('./engine/nodes') do |nodefile|
+    if nodefile =~ /.*\.rb$/
+      #puts "loading nodes from #{nodefile}"
+      require nodefile
+    end
+  end
+end
 
 # script executing engine
 class TCBuilder
@@ -205,6 +219,7 @@ class TCBuilder
   @nodes = {}
   @valid = false
   @log = []
+  @valid = false
 
   attr_reader :valid
   attr_reader :log
@@ -218,8 +233,14 @@ class TCBuilder
     @log = []
     @threads = []
     @print_code = print_code
-    $n.each do |node|
-      @nodemap[node.opname] = node
+    $node_classes.each do |nodeclass|
+      if nodeclass.opname.is_a? Array
+        nodeclass.opname.each do |classname|
+          @nodemap[classname] = nodeclass
+        end
+      else
+        @nodemap[nodeclass.opname] = nodeclass
+      end
     end
 
     @log << "loading script file \"#{script_file}\"..."
@@ -227,11 +248,13 @@ class TCBuilder
       @log << "script \"#{script_file}\" loaded"
     else
       @log << "script \"#{script_file}\" NOT loaded due some errors"
+      @valid = false
       return false
     end
 
     if not run
       @log << "dry run completed"
+      @valid = true
       return true
     end
     
@@ -239,9 +262,11 @@ class TCBuilder
       @log << "script \"#{script_file}\" started"
     else
       @log << "script \"#{script_file}\" NOT started due some errors"
+      @valid = false
       return false
     end
 
+    @valid = true
     return true
   end
 
@@ -257,6 +282,7 @@ class TCBuilder
         err = "syntax error in line \"#{line}\": #{node.error}"
         @log << err
         fail = true
+        @valid = false
         next
       end
 
@@ -268,6 +294,7 @@ class TCBuilder
           err = "node named \"#{node.tag}\" allredy defined before. redefinition in line \"#{node.source}\""
           @log << err
           fail = true
+          @valid = false
           next
         end
         @nodes_descr[node.tag] = node
@@ -328,9 +355,10 @@ class TCBuilder
       param = eval "[#{node.param}]"
       #p param
       @nodes[tag] ||= []
-      1.upto node.count do
+      1.upto node.count do |index|
         newnode = @nodemap[node.nodetype].new([], [], (node.passtype == :toall), param)
         newnode.invert = node.inverted
+        newnode.nodename = "#{node.nodetype}[#{index}/#{node.count}]"
         @nodes[tag] << newnode
       end
     end
@@ -375,40 +403,35 @@ class TCBuilder
     return true
   end
 
-  def stop_script()
+  def stop()
     @nodes.each_value do |nodelist|
-      nodelist.each do node
+      nodelist.each do |node|
         node.stop
       end
     end
+    @nodemap = {}
+    @nodes_descr = {}
+    @nodes_queue = {}
     @nodes = {}
+    @valid = false
+    @log = []
+    @valid = false
+    @threads = []
   end
   
   def join()
-    return if @threads.empty?
-    while true
-      @threads.each do |th|
-        if th.alive?
-          sleep 0.5
-          next
-        end
-        return true
-      end
+    #p @threads
+    begin
+      @threads.each{|th|th.join}
+    rescue Interrupt => e
+      self.stop
+      raise e
+    rescue Exception => e
+      self.stop
+      #print_error e
     end
   end
 end
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

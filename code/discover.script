@@ -1,3 +1,4 @@
+
 #hi. i'm just a silent modest comment :)
 
 #>
@@ -5,9 +6,12 @@
 #>
 
 
+(SrcDebug)>f_554
+
 #> 1. so there we go. at first lets get some online host...
 #>    with 100 threads we have more chances
-(rndup[150])?#
+(rndup[200])?#
+
 
 
 #> 2. now lets check if it RTSP device(port 554)
@@ -24,7 +28,8 @@ f_retcode(respcf|[200,201,202,203,204,205,206]|[5])?#
 
 
 #> 9b. nah... i'm so tired. i'll watch it tomorrow
-f_log(saveip|'./loot/reslist'|[2])?#
+f_log(saveip|'./loot/reslist.noping'|[12])?#
+f_total_log(saveip|'~/rndcaddrbase'|[12])?#
 
 
 #> 10. logging of plausible results

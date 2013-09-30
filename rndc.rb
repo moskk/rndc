@@ -13,7 +13,8 @@ def man_hash()
   cmdman['-f'] = " <script file> specifying script file"
   cmdman['-n'] = "\tdry run, just check script for syntax"
   cmdman['-t'] = "\tprint time stamps in tracing lines"
-  cmdman['-c'] = "\tprint squized script code"
+  cmdman['-c'] = "\tprint squized script code on start"
+  cmdman['-r'] = "\trestart script on critical runtime error or on finish"
   cmdman['-h'] = "\tthis manual"
   cmdman['-hh'] = "\tthis manual and script function list"
   cmdman['-hhh'] = "\tthis manual and script function list with descriptions"
@@ -43,19 +44,22 @@ end
 #       E N T R Y   P O I N T
 #####################################
 puts "\nsee https://github.com/moskk/rndc for more information and newest versions\n\n"
+
+load_node_classes
+
 args = parse_args
 
 if args['hhh']
   print_man
   puts "\ntool chain builder alloved actions:"
-  $n.each do |node|
+  $node_classes.each do |node|
     puts "= #{node.opname} - #{node.descr}"
   end
   exit
 elsif args['hh']
   print_man
   puts "\ntool chain builder alloved actions:"
-  $n.each do |node|
+  $node_classes.each do |node|
     puts "= #{node.opname}"
   end
   exit
@@ -89,8 +93,12 @@ while true do
   begin
     tcb = TCBuilder.new file, run, print_code
     puts tcb.log
+    
+    if not tcb.valid
+      break
+    end
 
-    if args['-t']
+    if args['t']
       module Kernel
         def puts (*params)
           print Time.now.to_s.split(' ')[1], ' '
@@ -99,21 +107,19 @@ while true do
         end
       end
     end
-
     tcb.join
-  rescue
-    tcb.stop_script
-    puts "CRITICAL ERROR, RESTART"
+  rescue Exception => e
+      puts "CRITICAL ERROR"
+      print_error e
+  end
+  #puts args
+  tcb.stop
+  if args['r'].nil?
+   puts "script #{file} successfully finished"
+  break
+  else
+     puts "SCRIPT RESTART"
   end
 end
-
-
-
-
-
-
-
-
-
 
 
