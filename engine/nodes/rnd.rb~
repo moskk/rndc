@@ -23,7 +23,7 @@ class HostsUpSrc < Source
   end
 
   def self.descr()
-    "generates some random IP address that responds on ping requests"
+    "generates some random IP address that is online now"
   end
 end
 

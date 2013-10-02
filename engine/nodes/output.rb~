@@ -68,7 +68,7 @@ class IpFileSaverFlt < Filter
   end
 
   def self.opname()
-    ['saveip','SaveUrl']
+    ['saveip']
   end
   def self.descr()
     "saves job's IP as text into file. parameter - output file name"

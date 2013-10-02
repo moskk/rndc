@@ -98,7 +98,7 @@ class PageTitleFlt < Filter
     ['titlef','FilterByPageTitle']
   end
   def self.descr()
-    "check page TITLE for some strings matching. suppress the job if any matches found. parameter - list of strings file path"
+    "check page TITLE for some strings matching. suppress the job if any matches found.  parameter - list of strings file path"
   end
 end
 

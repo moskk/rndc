@@ -19,7 +19,7 @@ class PortCheckFlt < Filter
   end
 
   def self.opname()
-    ['oport','CheckTcpPort']
+    'oport'
   end
 
   def self.descr()
