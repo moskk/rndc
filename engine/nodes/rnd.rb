@@ -3,6 +3,7 @@ class HostsUpSrc < Source
   def spawn
     while true
       addr = mk_rnd_ip
+      Thread.pass
       if online? addr
         job = Job.new
         job.ip = addr
@@ -25,6 +26,10 @@ class HostsUpSrc < Source
   def self.descr()
     "generates some random IP address that responds on ping requests"
   end
+  
+  def log_info()
+    "generated random IP, ping'ed, got responce"
+  end
 end
 
 class RndHostsSrc < Source
@@ -32,7 +37,7 @@ class RndHostsSrc < Source
     addr = mk_rnd_ip
     job = Job.new
     job.ip = addr
-    #sleep 0.5
+    Thread.pass
     return job
   end
 
@@ -42,6 +47,10 @@ class RndHostsSrc < Source
 
   def self.descr()
     "generates random IP address"
+  end
+  
+  def log_info()
+    "generated random IP"
   end
 end
 

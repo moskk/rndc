@@ -1,9 +1,9 @@
 (rndup[200])?#
-f_554(oport|[80,554]|[200])?#
-gpage(getpage[150])?#
-f_retcode(respcf|[200,201,202,203,204,205,206]|[5])?#
-f_log(saveip|'./loot/reslist.noping'|[2])?#
-f_total_log(saveip|'~/rndcaddrbase'|[2])?#
+f_554(oport|[80,554]|[10])?#
+gpage(getpage[30])?#
+f_retcode(respcf|[200,201,202,203,204,205,206]|)?#
+f_log(saveip|'../reslist.noping'|)?#
+f_total_log(saveip|'~/rndcaddrbase'|)?#
 f_trace(printip|'------>'|)>#
 
 

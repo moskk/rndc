@@ -15,6 +15,7 @@ def man_hash()
   cmdman['-t'] = "\tprint time stamps in tracing lines"
   cmdman['-c'] = "\tprint squized script code on start"
   cmdman['-r'] = "\trestart script on critical runtime error or on finish"
+  cmdman['-l'] = "\tenable job trace logging"
   cmdman['-h'] = "\tthis manual"
   cmdman['-hh'] = "\tthis manual and script function list"
   cmdman['-hhh'] = "\tthis manual and script function list with descriptions"
@@ -48,6 +49,8 @@ puts "\nsee https://github.com/moskk/rndc for more information and newest versio
 load_node_classes
 
 args = parse_args
+
+$logging = false
 
 if args['hhh']
   print_man
@@ -88,6 +91,11 @@ elsif not File.exists? ARGV[fi+1]
 else
   file = ARGV[fi+1]
 end
+
+if args['l']
+  $logging = true
+end
+
 
 while true do
   begin

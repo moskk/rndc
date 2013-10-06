@@ -1,12 +1,11 @@
 
 class PrintFlt < Filter
   def initialize(cust_list, ncust_list, mode, params)
-    @msg = params[0]
+    @msg = params.fetch(0,'')
     super cust_list, ncust_list, mode
   end
   
   def do_job(job)
-    #return online? job.ip
     puts "#{@msg}#{job.url}"
     return true
   end
@@ -17,6 +16,10 @@ class PrintFlt < Filter
   
   def self.descr()
     "just prints job URL and pass the job. parameter - message string printed before IP"
+  end
+  
+  def log_info()
+    "#{@msg} printed"
   end
 end
 
@@ -62,7 +65,8 @@ class IpFileSaverFlt < Filter
   end
   
   def do_job(job)
-    system "echo '#{job.ip}' >> #{@file}"
+    #system "echo '#{job.ip}' >> #{@file}"
+    write_file @file, job.ip
     #puts "wrote to file: #{job.ip}"
     return true
   end

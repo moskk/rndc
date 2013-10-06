@@ -8,16 +8,6 @@ def between(str, l, r)
   return str[il+1..ir-1]
 end
 
-:nopas
-:toall
-:toany
-:paser
-def pass_dict()
-  passh = {'>'=>:toall,'?'=>:toany, nil=>:nopas}
-  passh.default = :paser
-  return passh
-end
-
 # squize empty spaces in code lines except ones in string values
 def code_squize(str)
   s1 = str.split ''
@@ -272,9 +262,10 @@ class TCBuilder
 
   def load_script(script_file)
     # parsing script
+    fail = true
     script = file_lines script_file
+    return false if script.nil?
     fail = false
-    #puts script
     def_tag = 'unnamed_node:aaaa'
     script.each do |line|
       node = NodeDescription.new line, @print_code
@@ -288,7 +279,7 @@ class TCBuilder
 
       if not node.nodetype.nil?
         if node.tag.empty? or node.tag.nil?
-          node.tag = def_tag.succ!
+          node.tag = def_tag.succ!.clone
         end
         if @nodes_descr.include? node.tag
           err = "node named \"#{node.tag}\" allredy defined before. redefinition in line \"#{node.source}\""
@@ -306,6 +297,7 @@ class TCBuilder
     return false if fail
     
     #p @nodes_queue
+    #p @nodes_descr
 
     # checking for valid node action names and tags
     @nodes_descr.each_value do |node|
@@ -356,9 +348,9 @@ class TCBuilder
       #p param
       @nodes[tag] ||= []
       1.upto node.count do |index|
-        newnode = @nodemap[node.nodetype].new([], [], (node.passtype == :toall), param)
+        newnode = @nodemap[node.nodetype].new([], [], node.passtype, param)
         newnode.invert = node.inverted
-        newnode.nodename = "#{node.nodetype}[#{index}/#{node.count}]"
+        newnode.nodename = "#{tag}:#{node.nodetype}[#{index}/#{node.count}]"
         @nodes[tag] << newnode
       end
     end
@@ -384,8 +376,8 @@ class TCBuilder
         @log << "WARNING: node \"#{tag}\" has no actors. is it ok?"
         next
       end
-      if nodelist[0].cust_list.empty?
-        @log << "WARNING: node \"#{tag}\" has no consumers, so its all jobs will be suppressed. is it ok?"
+      if (nodelist[0].mode != :nopas) and (nodelist[0].cust_list.empty? and nodelist[0].ncust_list.empty?)
+        @log << "WARNING: node \"#{tag}\" has no consumers, so its all jobs will be skipped. is it ok?"
       end
     end
     

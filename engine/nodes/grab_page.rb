@@ -8,7 +8,7 @@ def grab_page(url)
     #return nil if not res.response_body_permitted?
     html = res.body
   rescue Exception => e
-    puts "exc: #{e.message}"
+    #puts "exc: #{e.message}"
     return nil
   end
   doc = Nokogiri::HTML(html)
@@ -67,11 +67,11 @@ class PageGraber < Transformer
         text, html, code, title = grab_page job.url
       }
     rescue Timeout::Error
-      puts "#{job.url}: page grabing timed out"
+      #puts "#{job.url}: page grabing timed out"
       return nil
     end
     if succ.nil?
-      puts "#{job.url}: page grabing failed"
+      #puts "#{job.url}: page grabing failed"
       return nil
     end
     #puts ">>>>>>> grabbed page from >#{job}<, title >#{title}<, resp_code #{code}"

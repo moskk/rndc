@@ -6,6 +6,12 @@ $example_addr = '77.88.21.3'
 
 require 'ostruct'
 class Job < OpenStruct
+  attr_reader :log
+  def initialize()
+    @log = []
+    super
+  end
+  
   def url
     res = '---'
     if not domain.nil?
@@ -16,6 +22,25 @@ class Job < OpenStruct
     #print self, ' url = ', res
     return res
   end
+  
+  def log_event(newlog)
+    if newlog.is_a? String
+      @log << newlog
+    elsif newlog.is_a? Array
+      @log.concat newlog
+    else
+      @log << newlog.inspect
+    end
+  end
+  
+  def log_result(res)
+    if res
+      @log << 'passed'
+    else
+      @log << 'skipped'
+    end
+  end
+  
 end
 
 class EndOfJobStream
@@ -30,6 +55,16 @@ def print_error(e)
   e.backtrace.each{|line| puts "\t#{line}"}
 end
 
+:nopas
+:toall
+:toany
+:paser
+def pass_dict()
+  passh = {'>'=>:toall,'?'=>:toany, nil=>:nores, '.'=>:nopas}
+  passh.default = :paser
+  return passh
+end
+
 require 'thread'
 class Node
   attr_accessor :invert
@@ -37,20 +72,25 @@ class Node
   attr_reader :thread
   attr_reader :cust_list
   attr_reader :ncust_list
+  attr_reader :joblog
+  attr_reader :mode
   @jobs = nil
   @cust_list = []
   @ncust_list = []
-  # mode: true - result sent to all customers, false - result sent to any customer
-  @mode = true
+  @mode = :paser
   @thread = nil
   @invert = false
+  #@joblog = []
   def initialize(cust_list, ncust_list, mode, params = nil)
     @jobs = Queue.new
     @cust_list = cust_list
     @ncust_list = ncust_list
     @mode = mode
     @invert = false
-    @nodename = ""
+    @nodename = ''
+    if $logging
+      @joblog = []
+    end
   end
   
   # enqueueing new job
@@ -78,13 +118,14 @@ class Node
       return true
     elsif job.is_a? Job
       recv_list = succ ? @cust_list : @ncust_list
-      if(@mode)
+      case @mode
+      when :toall
         #recv_list.each{|cust|cust.enq job}
         l = [].concat recv_list
         while not l.empty? do
           l.delete_if{|node|node.enq job}
         end
-      else
+      when :toany
         l = recv_list.length
         return if l == 0
         # we must look for ready consumer until success
@@ -97,10 +138,15 @@ class Node
             #sleep 0.5
           end
         end
+      when :nopas
+        return true
+      when :paser
+        raise "#{self} are you fuc*ing keeding me?"
       end
     else
       return false
     end
+    return true
   end
   
   # is node ready to receive a new job
@@ -139,6 +185,10 @@ class Node
   def self.descr()
     nil
   end
+  
+  def log_info()
+    "#{self} no proper info for this node --"
+  end
 end
 
 class Source < Node
@@ -160,6 +210,9 @@ class Source < Node
     while not done?
       job = spawn
       #break if job.nil?
+      if $logging and job.is_a? Job
+        job.log_event(self.log_info)
+      end
       pass job, true
       break if job.is_a? EndOfJobStream
     end
@@ -174,13 +227,23 @@ class Filter < Node
       next if job.nil?
       res = false
       if job.is_a? Job
+        if $logging
+          @joblog.clear
+          job.log_event("#{self.nodename} :")
+          job.log_event(self.log_info)
+        end
         res = do_job job
+        if $logging and not @joblog.empty?
+          job.log_event @joblog
+        end
+        if @invert
+          job.log_event 'filter inverted' if $logging
+          res = (not res)
+        end
+        job.log_result res
       else
         puts "eojs"
       end
-      if @invert
-        res = (not res)
-      end 
       #p res
       pass job, res
       break if job.is_a? EndOfJobStream
@@ -201,7 +264,14 @@ class Transformer < Node
       job = @jobs.pop
       next if not job
       if job.is_a? Job
+        if $logging
+          @joblog.clear
+          job.log_event(self.log_info)
+        end
         job = do_job job
+        if $logging and not @joblog.empty?
+          job.log_event @joblog
+        end
       end
       pass(job, (not job.nil?))
       break if job.is_a? EndOfJobStream
@@ -275,4 +345,22 @@ def online?(host)
   res = Net::Ping::External.new.ping(host)
   #puts "host up #{host}" if res
   return res
+end
+
+def write_file(where, what)
+  #cmd  = "echo '#{what}' >> #{where}"
+  #puts cmd
+  #system cmd
+  where = File.expand_path(where)
+  while not File.open(where,'a') { |file|
+      if file.flock(File::LOCK_EX)
+        file.write "#{what}"
+        return true
+      else
+        return false
+      end
+    } do
+      sleep rand(0.1)
+      puts "faaaaailed write to file #{where}"
+  end
 end
