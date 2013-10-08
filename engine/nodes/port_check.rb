@@ -10,10 +10,10 @@ class PortCheckFlt < Filter
     #puts "scan #{job}"
     @port_list.each do |port|
       if not port_open?(job.ip, port)
-        #puts "#{job}:#{port} closed"
+        @joblog << "port #{port} closed" if $logging
         return false
       end
-      #puts "#{job}:#{port} opened"
+      @joblog << "port #{port} opened" if $logging
     end
     return true
   end
@@ -24,6 +24,10 @@ class PortCheckFlt < Filter
 
   def self.descr()
     "check given IP on opened port(s), pass the job if all ports are opened. parameter - list of port numbers"
+  end
+  
+  def log_info()
+    "tryed to connect on TCP ports #{@port_list}"
   end
 end
 

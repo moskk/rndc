@@ -10,11 +10,15 @@ class PingFlt < Filter
   end
 
   def self.opname()
-    'pingf'
+    ['pingf', 'PingIp']
   end
   
   def self.descr()
     "ping job's IP, forward responded IPs"
+  end
+  
+  def log_info()
+    'send ping rq to host and wait for responce'
   end
 end
 

@@ -8,22 +8,27 @@ exit
 
 require 'optparse'
 
+def usage()
+  "#{__FILE__} [OPTIONS] <filename>"
+end
+
 def man_hash()
   cmdman = {}
-  cmdman['-f'] = " <script file> specifying script file"
+  #cmdman['-f'] = " <script file> specifying script file"
   cmdman['-n'] = "\tdry run, just check script for syntax"
   cmdman['-t'] = "\tprint time stamps in tracing lines"
   cmdman['-c'] = "\tprint squized script code on start"
   cmdman['-r'] = "\trestart script on critical runtime error or on finish"
   cmdman['-l'] = "\tenable job trace logging"
-  cmdman['-h'] = "\tthis manual"
-  cmdman['-hh'] = "\tthis manual and script function list"
-  cmdman['-hhh'] = "\tthis manual and script function list with descriptions"
+  #cmdman['-h'] = "\tthis manual"
+  cmdman['-h'] = "\tthis manual and script function list"
+  cmdman['-hh'] = "\tthis manual and script function list with descriptions"
   return cmdman
 end
 
 def print_man()
-  puts "command line options:"
+  puts "basic usage: #{usage}"
+  puts "command line OPTIONS:"
   cmdman = man_hash
   cmdman.each_pair do |key, value|
     puts "#{key}\t#{value}"
@@ -52,21 +57,22 @@ args = parse_args
 
 $logging = false
 
-if args['hhh']
+opts = "\ntool chain builder alloved actions:"
+if args['hh']
   print_man
-  puts "\ntool chain builder alloved actions:"
+  puts opts
   $node_classes.each do |node|
     puts "= #{node.opname} - #{node.descr}"
   end
   exit
-elsif args['hh']
+elsif args['h']
   print_man
-  puts "\ntool chain builder alloved actions:"
+  puts opts
   $node_classes.each do |node|
     puts "= #{node.opname}"
   end
   exit
-elsif args['h'] or args.empty?
+elsif args.empty?
   print_man
   exit
 end
@@ -81,15 +87,12 @@ if args['c']
   print_code = true
 end
 
-fi = ARGV.index '-f'
-file = ''
-if fi.nil? or ARGV[fi+1].nil?
-  puts "ERROR: script file not specified, use -f <filename>"
+file = ARGV.last
+if ARGV.size == 0
+  puts "ERROR: script file not specified, use #{usage}"
   exit
-elsif not File.exists? ARGV[fi+1]
+elsif not File.exists? file
   puts "ERROR: script file \"#{ARGV[fi+1]}\" does not exist"
-else
-  file = ARGV[fi+1]
 end
 
 if args['l']

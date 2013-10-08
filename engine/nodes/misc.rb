@@ -1,4 +1,6 @@
 
+$debug_addr = '77.88.21.3'
+
 class Delayer < Transformer
   def initialize(cust_list, ncust_list, mode, params)
   @delay = params[0]
@@ -49,11 +51,8 @@ end
 class DebugSource < Source
   def spawn
     sleep 1
-    #p 1111
     job = Job.new
-    #p 1112
-    job.ip = '66.49.130.149'
-    #p 1113
+    job.ip = $debug_addr
     return job
   end
   
@@ -81,7 +80,7 @@ class FileHostsSrc < Source
     @files = params
     @addrlines = []
     @files.each do |file|
-      @addrlines.concat file_lines(file)
+      @addrlines.concat file_lines(File.expand_path file)
     end
     @nline = 0
     @done = false
@@ -97,6 +96,7 @@ class FileHostsSrc < Source
       job.ip = @addrlines[@nline]
       @nline += 1
       #sleep 0.5
+      Thread.pass
       return job
     end
   end

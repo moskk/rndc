@@ -24,11 +24,11 @@ class HostsUpSrc < Source
   end
 
   def self.descr()
-    "generates some random IP address that responds on ping requests"
+    "generates random IP address that responds on ping requests"
   end
   
   def log_info()
-    "generated random IP, ping'ed, got responce"
+    "generated random IP, ping it and wait for responce"
   end
 end
 

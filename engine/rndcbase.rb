@@ -1,9 +1,4 @@
 #! /usr/bin/ruby
-
-#$example_addr = '74.125.232.206'
-$example_addr = '77.88.21.3'
-#$example_addr = '66.71.253.245'
-
 require 'ostruct'
 class Job < OpenStruct
   attr_reader :log
@@ -27,7 +22,9 @@ class Job < OpenStruct
     if newlog.is_a? String
       @log << newlog
     elsif newlog.is_a? Array
-      @log.concat newlog
+      newlog.each do |line|
+        @log << "\t#{line}"
+      end
     else
       @log << newlog.inspect
     end
@@ -136,6 +133,7 @@ class Node
           else
             #puts "WARNING: #{self}: consumer #{@cust_list[to]} is busy, looking for enother one..."
             #sleep 0.5
+            Thread.pass
           end
         end
       when :nopas
@@ -187,7 +185,7 @@ class Node
   end
   
   def log_info()
-    "#{self} no proper info for this node --"
+    ''
   end
 end
 
@@ -211,7 +209,8 @@ class Source < Node
       job = spawn
       #break if job.nil?
       if $logging and job.is_a? Job
-        job.log_event(self.log_info)
+        job.log_event("#{self.nodename} :")
+        job.log_event(self.log_info) if not self.log_info.empty?
       end
       pass job, true
       break if job.is_a? EndOfJobStream
@@ -230,7 +229,7 @@ class Filter < Node
         if $logging
           @joblog.clear
           job.log_event("#{self.nodename} :")
-          job.log_event(self.log_info)
+          job.log_event("\t#{self.log_info}") if not self.log_info.empty?
         end
         res = do_job job
         if $logging and not @joblog.empty?
@@ -266,7 +265,7 @@ class Transformer < Node
       if job.is_a? Job
         if $logging
           @joblog.clear
-          job.log_event(self.log_info)
+          job.log_event(self.log_info) if not self.log_info.empty?
         end
         job = do_job job
         if $logging and not @joblog.empty?

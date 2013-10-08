@@ -36,7 +36,11 @@ class OperaOpener < Filter
     ['oopera','BrowseOpera']
   end
   def self.descr()
-    "just sends IP to Opera web browser and pass the job"
+    "just sends url to Opera web browser and pass the job"
+  end
+
+  def log_info()
+    "browsed in Opera"
   end
 end
 
@@ -55,6 +59,10 @@ class IceweaselOpener < Filter
   def self.descr()
     "just sends IP to Iceweasel web browser and pass the job"
   end
+
+  def log_info()
+    "browsed in Iceweasel"
+  end
 end
 
 # PageInfo => *allowed page title* => PageInfo
@@ -66,7 +74,7 @@ class IpFileSaverFlt < Filter
   
   def do_job(job)
     #system "echo '#{job.ip}' >> #{@file}"
-    write_file @file, job.ip
+    write_file @file, "#{job.ip}\n"
     #puts "wrote to file: #{job.ip}"
     return true
   end
@@ -76,6 +84,10 @@ class IpFileSaverFlt < Filter
   end
   def self.descr()
     "saves job's IP as text into file. parameter - output file name"
+  end
+
+  def log_info()
+    "url saved to #{@file}"
   end
 end
 
