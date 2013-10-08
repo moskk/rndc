@@ -87,6 +87,11 @@ if args['c']
   print_code = true
 end
 
+restart = false
+if args['r']
+  restart = true
+end
+
 file = ARGV.last
 if ARGV.size == 0
   puts "ERROR: script file not specified, use #{usage}"
@@ -125,11 +130,13 @@ while true do
   end
   #puts args
   tcb.stop
-  if args['r'].nil?
-   puts "script #{file} successfully finished"
-  break
+  if not run
+    break
+  elsif restart
+    puts "SCRIPT RESTART"
   else
-     puts "SCRIPT RESTART"
+    puts "script #{file} successfully finished"
+    break
   end
 end
 
