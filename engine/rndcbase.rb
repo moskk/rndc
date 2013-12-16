@@ -307,7 +307,10 @@ def shrink_text(text)
 end
 
 def file_lines(path)
-  return nil if path.nil? or not File.exists? path
+  if not File.exists? path
+    raise "ERROR: file #{path} is not exist"
+  end
+  return nil if path.nil?
   file = File.new(path, "rt")
   res = []
   while line = file.gets

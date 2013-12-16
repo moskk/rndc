@@ -1,4 +1,4 @@
-(filesrc|'/home/moskk/rndc/data/test.file.source.data'|)>#
-(printip)
+(filesrc|'/home/moskk/rndc/data/test.file.source.data'|).
+
 
 

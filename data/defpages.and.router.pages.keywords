@@ -144,26 +144,30 @@ Any time & Any where
 您的网站未备案已被系统自动关闭
 万网首页 | 客服中心
 Please Try Again Later
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+This is the server home page. No domain is currently configured for this IP.
+Be happy.
+Log in to the router
+Please login...
+IP Surveillance for Your Life
+Under Construction
+Por favor, escriba su contraseña de acceso y haga clic en el
+您想要查看的站点当前没有默认页。可能正在对它进行升级和配置操作。
+Login to the router
+Depending on the Internet bandwidth, it might take a few minutes to download the software.
+Default Web1 Server
+没有安装视频控件，点此下载安装
+Erro no sistema!
+Saia PCD Web-Server
+This site is under construction and will be available soon.
+Para tener acceso a la Ayuda de IIS
+if(param.length == 2 && param[1].length > 0) // 
+document.title = "AirTies " + (__DEF_ProductBoardTypeForLoginPage  == "" ? __DEF_BuildProfile : __DEF_ProductBoardTypeForLoginPage);
+If you feel you have reached this page in error, please
+Please type your login password and click the Login button.
+illegalpath.php
+var HashCookie = new Hash.Cookie('DhWebCookie',{duration: 30});
+<td rowspan="2" align="center" valign="center" width="40"><input tabindex="3" type="image" src="/img/ic_ok.png" style="cursor: pointer; border: 0px solid white" onClick="document.f.submit()"></td>
+defaultwebpage.cgi
 
 
 

@@ -8,12 +8,12 @@ We apologize for the inconvenience. Please contact the webmaster/
 tech support immediately to have them rectify this.<p>
 <title>WEB SERVICE</title>
 <h1>Default Web Site Page</h1>
-
-
-
-
-
-
+Wowza Media Server
+If you feel you have reached this page in error, please contact the web site owner
+GİRİŞ
+En construcción
+Per problemi di accesso
+<input class="inputyt" type="text" id="ps" value="5" maxlength="1" onkeyup="limitPs()" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d]/g,''))">
 
 
 

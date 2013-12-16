@@ -1,0 +1,9 @@
+(filesrc|'~/rndcaddrbase'|)?#
+(PingIp[80])?#
+(oport|[80,554]|[50])?#:fail
+(getpage[50])?#:fail
+(respcf|[200,201,202,203,204,205,206]|[10])?#:fail
+(saveip|'../reslist.refiletred'|)?#:fail
+ok(PrintUrl|'ok   '|)>log
+fail(PrintUrl|'fail '|)>log
+log(logf|'/home/moskk/dede'|).

@@ -1,0 +1,11 @@
+(filesrc|'/home/moskk/rndcaddrbase'|)?#
+f_554(oport|[80,554]|[100])?#
+gpage(getpage[100])?#
+f_retcode(respcf|[200,201,202,203,204,205,206]|[15])?#
+f_codef1(codef|'/home/moskk/rndc/data/defpages.and.router.pages.keywords'|[10])?#
+f_codef2(codef|'/home/moskk/rndc/data/unwished.page.code'|[10])?#
+f_titlef1(titlef|'/home/moskk/rndc/data/defpages.and.router.pages.titles'|[10])?#
+f_titlef2(titlef|'/home/moskk/rndc/data/unwished.page.titles'|[10])?#
+#f_log(logf|'/home/moskk/hardlog'|)?#
+f_logg(saveip|'/home/moskk/reslist.repeat'|[1])?#
+f_trace(printip|'------>'|).

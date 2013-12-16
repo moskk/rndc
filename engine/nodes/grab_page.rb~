@@ -22,7 +22,7 @@ def grab_page(url)
   rescue Exception => e
     puts "grab_page: some shit happened: #{e.message}"
   end
-  #puts  [text, html, res.code.to_i, title]
+  puts  [text, html, res.code.to_i, title]
   return text, html, res.code.to_i, title
 end
 

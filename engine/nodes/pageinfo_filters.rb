@@ -8,10 +8,13 @@ class TextFilter < Filter
   
   def do_job(job)
     return false if not job.text
+    @joblog << "page text\n#{job.text}\n\n\n\n" if $logging
     begin    
       @dlines.each do |dline|
         if job.text.index dline
-          puts "#{job.url} matched: text contains #{dline}"
+          msg = "#{job.url} matched: text contains #{dline}"
+          #puts msg
+          @joblog << msg
           return false
         end
       end
@@ -36,15 +39,18 @@ class PageCodeTextFilter < Filter
   end
   
   def do_job(job)
-    return false if not job.html
-    return false if job.html.empty?
+    return false if job.html.nil? or job.html.empty?
+    @joblog << "page code\n#{job.html}\n\n\n\n" if $logging
     begin
-      code = shrink_text job.html
+      #code = shrink_text job.html
+      #puts @dlines
       @dlines.each do |dline|
-	if code.index dline
-	  puts "#{job.url} matched: page code contains #{dline}"
-	  return false
-	end
+        if job.html.index dline
+          msg = "#{job.url} matched: page code contains #{dline}"
+          #puts msg
+          @joblog << msg if $logging
+          return false
+        end
       end
     rescue
     end
@@ -67,6 +73,7 @@ class RespCodeFlt < Filter
   end
   
   def do_job(job)
+    @joblog << "current respcode #{job.resp_code}" if $logging
     return @codes.include? job.resp_code
   end
 
@@ -86,10 +93,13 @@ class PageTitleFlt < Filter
   end
   
   def do_job(job)
-    title = job.title
-    return true if title == nil or title.empty?
+    @joblog << "page title \"#{job.title}\"" if $logging
+    return true if job.title == nil or job.title.empty?
     @titles.each do |title|
-      return false if title.index(title) != nil
+      if title.index(title) != nil
+        @joblog << "page title contains \"#{title}\"" if $logging
+        return false 
+      end
     end
     return true
   end

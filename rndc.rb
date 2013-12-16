@@ -1,6 +1,4 @@
 #!/usr/bin/env ruby
-require './engine/tcbuilder.rb'
-
 =begin
 puts code_squize("1 1  1   1    't\t2  2  \"1 3   3   1 1 \"3   4    1 6       3   t\t4    5     '1    \"3   '||2  3   5     t\t0'\"")
 exit
@@ -51,6 +49,7 @@ end
 #####################################
 puts "\nsee https://github.com/moskk/rndc for more information and newest versions\n\n"
 
+require './engine/tcbuilder.rb'
 load_node_classes
 
 args = parse_args
@@ -72,7 +71,7 @@ elsif args['h']
     puts "= #{node.opname}"
   end
   exit
-elsif args.empty?
+elsif ARGV.empty?
   print_man
   exit
 end
@@ -97,13 +96,12 @@ if ARGV.size == 0
   puts "ERROR: script file not specified, use #{usage}"
   exit
 elsif not File.exists? file
-  puts "ERROR: script file \"#{ARGV[fi+1]}\" does not exist"
+  puts "ERROR: script file \"#{file}\" does not exist"
 end
 
 if args['l']
   $logging = true
 end
-
 
 while true do
   begin
