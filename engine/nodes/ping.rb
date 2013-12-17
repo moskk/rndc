@@ -6,7 +6,7 @@ class PingFlt < Filter
   end
   
   def do_job(job)
-    return true
+    return online? job.ip
   end
 
   def self.opname()

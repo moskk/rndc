@@ -344,7 +344,12 @@ end
 #  - gem install net-ping
 require 'net/ping'
 def online?(host)
-  res = Net::Ping::External.new.ping(host)
+  res = false
+  if Process.uid == 0
+    res = Net::Ping::ICMP.new(host, 0, 1).ping
+  else
+    res = Net::Ping::External.new.ping(host)
+  end
   #puts "host up #{host}" if res
   return res
 end

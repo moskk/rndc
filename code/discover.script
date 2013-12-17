@@ -1,6 +1,6 @@
-(rndup[200])?#
-f_554(oport|[80,554]|[80])?#
-gpage(getpage[30])?#
+(rndup[150])?#
+f_554(oport|[80,554]|[20])?#
+gpage(getpage[20])?#
 f_retcode(respcf|[200,201,202,203,204,205,206]|)?#
 f_log(saveip|'../reslist.noping'|)?#
 f_total_log(saveip|'/home/moskk/rndcaddrbase'|)?#
