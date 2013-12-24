@@ -1,4 +1,4 @@
-require 'nokogiri'
+#require 'nokogiri'
 require 'net/http'
 def grab_page(url)
   html = nil
@@ -11,18 +11,13 @@ def grab_page(url)
     #puts "exc: #{e.message}"
     return nil
   end
-  doc = Nokogiri::HTML(html)
+  #doc = Nokogiri::HTML(html)
   # text = doc.at('body').inner_text
   # title = doc.at_css("title").text
-  title = doc.title
-  text = ''
-  begin
-    text = doc.xpath("//text()").to_s
-    text = shrink_text text
-  rescue Exception => e
-    puts "grab_page: some shit happened: #{e.message}"
-  end
-  #puts  [text, html, res.code.to_i, title]
+  title = html.scan(/<title>(.+?)<\/title>/m)
+  title = title.join " " if not title.nil?
+  text = html.scan(/>([^<>]+)</m)
+  text = text.join " " if not text.nil?
   return text, html, res.code.to_i, title
 end
 
