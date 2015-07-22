@@ -62,7 +62,7 @@ def pass_dict()
   return passh
 end
 
-require 'thread'
+#require 'thread'
 class Node
   attr_accessor :invert
   attr_accessor :nodename
@@ -75,7 +75,7 @@ class Node
   @cust_list = []
   @ncust_list = []
   @mode = :paser
-  @thread = nil
+#  @thread = nil
   @invert = false
   #@joblog = []
   def initialize(cust_list, ncust_list, mode, params = nil)
@@ -160,6 +160,8 @@ class Node
     @ncust_list += rlist
   end
 
+=begin
+
   def start()
     @thread = Thread.new{
       #while true
@@ -171,10 +173,11 @@ class Node
       #end
     }    
   end
-
   def stop()
     @thread.terminate
   end
+
+=end
 
   def self.opname()
     nil
