@@ -52,6 +52,14 @@ def print_error(e)
   e.backtrace.each{|line| puts "\t#{line}"}
 end
 
+def reimplement()
+  raise "payload is not implemented for #{self}"
+end
+
+def eojs()
+  puts "end of job stream received, stop"
+end
+
 :nopas
 :toall
 :toany
@@ -102,7 +110,7 @@ class Node
   
   # common procedure of jobs processing
   def payload
-    raise "payload is not implemented for #{self}"
+    reimplement
   end
   
   # passing the successfully processed job to customer(s)
@@ -197,28 +205,34 @@ class Source < Node
   
   def spawn
     #sleep 0.5
-    res = $example_addr
-    return res
+    #res = $example_addr
+    #return res
+    reimplement
   end
   
   # true if no more jobs can be generated
-  # means end of job stream
+  # means the end of job stream
   def done?
     return false
   end
   
+  # one single spawn routine
+  # return false if source is stopped, true otherwise
   def payload
-    while not done?
-      job = spawn
-      #break if job.nil?
-      if $logging and job.is_a? Job
-        job.log_event("#{self.nodename} :")
-        job.log_event(self.log_info) if not self.log_info.empty?
-      end
-      pass job, true
-      break if job.is_a? EndOfJobStream
+    if done?
+      return false
     end
-    #puts "------------- source #{self} finished"
+    job = spawn
+    if $logging and job.is_a? Job
+      job.log_event("#{self.nodename} :")
+      job.log_event(self.log_info) if not self.log_info.empty?
+    end
+    pass job, true
+    if job.is_a? EndOfJobStream
+      #puts "------------- source #{self} finished"
+      return false
+    end
+    return true
   end
 end
 
@@ -226,7 +240,7 @@ class Filter < Node
   def payload
     while true
       job = @jobs.pop
-      next if job.nil?
+      return true if job.nil?
       res = false
       if job.is_a? Job
         if $logging
@@ -243,20 +257,21 @@ class Filter < Node
           res = (not res)
         end
         job.log_result res
-      else
-        puts "eojs"
+        pass job, res
+      elsif job.is_a? EndOfJobStream
+        pass job, res
+        eojs
+        return false
       end
-      #p res
-      pass job, res
-      break if job.is_a? EndOfJobStream
     end
     #puts "------------- filter #{self} finished"
   end
   
   def do_job(job)
     # stub
-    return true if job
-    return false
+    # return true if job
+    # return false
+    reimplement
   end
 end
 
@@ -264,7 +279,7 @@ class Transformer < Node
   def payload
     while true
       job = @jobs.pop
-      next if not job
+      return true if not job
       if job.is_a? Job
         if $logging
           @joblog.clear
@@ -274,9 +289,12 @@ class Transformer < Node
         if $logging and not @joblog.empty?
           job.log_event @joblog
         end
+        pass(job, (not job.nil?))
+      elsif job.is_a? EndOfJobStream
+        pass(job, (not job.nil?))
+        eojs
+        return false
       end
-      pass(job, (not job.nil?))
-      break if job.is_a? EndOfJobStream
     end
   end
   

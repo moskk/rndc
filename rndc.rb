@@ -107,6 +107,7 @@ while true do
   begin
     tcb = TCBuilder.new file, run, print_code
     puts tcb.log
+    tcb.log.clear
     
     if not tcb.valid
       break
@@ -121,13 +122,13 @@ while true do
         end
       end
     end
-    tcb.join
+    res = tcb.process
   rescue Exception => e
       puts "CRITICAL ERROR"
       print_error e
   end
   #puts args
-  tcb.stop
+  tcb.reset
   if not run
     break
   elsif restart

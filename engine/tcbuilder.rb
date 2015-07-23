@@ -200,6 +200,7 @@ def load_node_classes()
   end
 end
 
+require "thread"
 # script executing engine
 class TCBuilder
 
@@ -212,7 +213,7 @@ class TCBuilder
   @valid = false
 
   attr_reader :valid
-  attr_reader :log
+  attr_accessor :log
 
   def initialize(script_file, run = true, print_code = false)
     @nodemap = {}
@@ -221,7 +222,7 @@ class TCBuilder
     @nodes = {}
     @valid = false
     @log = []
-    @threads = []
+    #@threads = []
     @print_code = print_code
     $node_classes.each do |nodeclass|
       if nodeclass.opname.is_a? Array
@@ -248,8 +249,8 @@ class TCBuilder
       return true
     end
     
-    if start_script
-      @log << "script \"#{script_file}\" started"
+    if prepare_script
+      @log << "script \"#{script_file}\" ready to go"
     else
       @log << "script \"#{script_file}\" NOT started due some errors"
       @valid = false
@@ -340,7 +341,14 @@ class TCBuilder
     return true
   end
 
-  def start_script()
+  def process()
+    #
+    #     PLACE TCBuilder working cycle here
+    #
+    return true
+  end
+
+  def prepare_script()
     # creating node actors
     @nodes_descr.each_pair do |tag, node|
       #param = eval node.param
@@ -380,27 +388,21 @@ class TCBuilder
         @log << "WARNING: node \"#{tag}\" has no consumers, so its all jobs will be skipped. is it ok?"
       end
     end
-    
-    # starting nodes
-    @nodes.each_value do |nodelist|
-      nodelist.each do |node|
-        node.start
-        @threads << node.thread
-      end
-    end
-    
+
     @log << ''
     @valid = true
 
     return true
   end
 
-  def stop()
+  def reset()
+=begin
     @nodes.each_value do |nodelist|
       nodelist.each do |node|
         node.stop
       end
     end
+=end
     @nodemap = {}
     @nodes_descr = {}
     @nodes_queue = {}
@@ -408,9 +410,10 @@ class TCBuilder
     @valid = false
     @log = []
     @valid = false
-    @threads = []
+    #@threads = []
   end
   
+=begin
   def join()
     #p @threads
     begin
@@ -423,6 +426,8 @@ class TCBuilder
       #print_error e
     end
   end
+=end
+
 end
 
 
